@@ -44,8 +44,13 @@ private:
   //! square root of gravity
   static t_real constexpr m_gSqrt = 3.131557121;
   static t_real constexpr g = 9.81;
+  // Computes the eigenvalues and the corresponding Z-matrix
+  //@
+  static void zsolver(t_real &ql, t_real &qr, t_real &z, t_real &lambda) public
+      :
 
-public:
+      static void netUpdates(t_real &ql, t_real &qr, t_real a_dQ_minus,
+                             t_real a_dq_plus)
 };
 
 #endif

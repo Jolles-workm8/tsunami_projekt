@@ -2,3 +2,5 @@
 #define private public
 #include "fwave.h"
 #undef public
+
+TEST_CASE("Test lambdas", )
