@@ -72,25 +72,48 @@ void tsunami_lab::patches::WavePropagation1d::timeStep(t_real i_scaling) {
     l_huNew[l_ce] = l_huOld[l_ce];
   }
   // create check for the solver, just an integer with a value for each solver
+  if (solver == true) {
+    // iterate over edges and update with Riemann solutions
+    for (t_idx l_ed = 0; l_ed < m_nCells + 1; l_ed++) {
+      // determine left and right cell-id
+      t_idx l_ceL = l_ed;
+      t_idx l_ceR = l_ed + 1;
 
-  // iterate over edges and update with Riemann solutions
-  for (t_idx l_ed = 0; l_ed < m_nCells + 1; l_ed++) {
-    // determine left and right cell-id
-    t_idx l_ceL = l_ed;
-    t_idx l_ceR = l_ed + 1;
+      // compute net-updates
+      t_real l_netUpdates[2][2];
 
-    // compute net-updates
-    t_real l_netUpdates[2][2];
+      solvers::fwave::netUpdates(l_hOld[l_ceL], l_hOld[l_ceR], l_huOld[l_ceL],
+                                 l_huOld[l_ceR], l_netUpdates[0],
+                                 l_netUpdates[1]);
 
-    solvers::Roe::netUpdates(l_hOld[l_ceL], l_hOld[l_ceR], l_huOld[l_ceL],
-                             l_huOld[l_ceR], l_netUpdates[0], l_netUpdates[1]);
+      // update the cells' quantities
+      l_hNew[l_ceL] -= i_scaling * l_netUpdates[0][0];
+      l_huNew[l_ceL] -= i_scaling * l_netUpdates[0][1];
 
-    // update the cells' quantities
-    l_hNew[l_ceL] -= i_scaling * l_netUpdates[0][0];
-    l_huNew[l_ceL] -= i_scaling * l_netUpdates[0][1];
+      l_hNew[l_ceR] -= i_scaling * l_netUpdates[1][0];
+      l_huNew[l_ceR] -= i_scaling * l_netUpdates[1][1];
+    }
+  } else {
+    // iterate over edges and update with Riemann solutions
+    for (t_idx l_ed = 0; l_ed < m_nCells + 1; l_ed++) {
+      // determine left and right cell-id
+      t_idx l_ceL = l_ed;
+      t_idx l_ceR = l_ed + 1;
 
-    l_hNew[l_ceR] -= i_scaling * l_netUpdates[1][0];
-    l_huNew[l_ceR] -= i_scaling * l_netUpdates[1][1];
+      // compute net-updates
+      t_real l_netUpdates[2][2];
+
+      solvers::Roe::netUpdates(l_hOld[l_ceL], l_hOld[l_ceR], l_huOld[l_ceL],
+                               l_huOld[l_ceR], l_netUpdates[0],
+                               l_netUpdates[1]);
+
+      // update the cells' quantities
+      l_hNew[l_ceL] -= i_scaling * l_netUpdates[0][0];
+      l_huNew[l_ceL] -= i_scaling * l_netUpdates[0][1];
+
+      l_hNew[l_ceR] -= i_scaling * l_netUpdates[1][0];
+      l_huNew[l_ceR] -= i_scaling * l_netUpdates[1][1];
+    }
   }
 }
 
