@@ -31,7 +31,8 @@
 #include "WavePropagation1d.h"
 #include "../solvers/Roe.h"
 
-tsunami_lab::patches::WavePropagation1d::WavePropagation1d(t_idx i_nCells) {
+tsunami_lab::patches::WavePropagation1d::WavePropagation1d(t_idx i_nCells,
+                                                           bool solver) {
   m_nCells = i_nCells;
 
   // allocate memory including a single ghost cell on each side
@@ -70,6 +71,7 @@ void tsunami_lab::patches::WavePropagation1d::timeStep(t_real i_scaling) {
     l_hNew[l_ce] = l_hOld[l_ce];
     l_huNew[l_ce] = l_huOld[l_ce];
   }
+  // create check for the solver, just an integer with a value for each solver
 
   // iterate over edges and update with Riemann solutions
   for (t_idx l_ed = 0; l_ed < m_nCells + 1; l_ed++) {
