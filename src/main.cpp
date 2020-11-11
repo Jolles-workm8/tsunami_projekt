@@ -45,9 +45,6 @@ int main(int i_argc, char *i_argv[]) {
   // set cell size
   tsunami_lab::t_real l_dxy = 1;
 
-  // variable for solver
-  bool solver;
-
   std::cout << "###################################" << std::endl;
   std::cout << "### Tsunami Lab                 ###" << std::endl;
   std::cout << "###                             ###" << std::endl;
@@ -73,10 +70,9 @@ int main(int i_argc, char *i_argv[]) {
   std::cout << "  number of cells in y-direction: " << l_ny << std::endl;
   std::cout << "  cell size:                      " << l_dxy << std::endl;
 
-  std::cout << "  Type 0 to pick the Roe solver" << std::endl;
-  std::cout << "  Type 1 to pick the f-wave solver" << std::endl;
+  // variable for solver
+  int solver = atoi(i_argv[2]);
 
-  std::cin << solver;
   // construct setup
   tsunami_lab::setups::Setup *l_setup;
   l_setup = new tsunami_lab::setups::DamBreak1d(10, 5, 5);
