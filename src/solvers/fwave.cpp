@@ -58,23 +58,17 @@ void tsunami_lab::solvers::fwave::waveStrengths(
   // compute inverse of right eigenvector-matrix
   t_real l_detInv = 1 / (i_waveSpeedR - i_waveSpeedL);
 
-  t_real l_rInv[2][2] = {0};
-  l_rInv[0][0] = l_detInv * i_waveSpeedR;
-  l_rInv[0][1] = -l_detInv;
-  l_rInv[1][0] = -l_detInv * i_waveSpeedL;
-  l_rInv[1][1] = l_detInv;
 
   // compute jump in quantities
   t_real l_hJump = i_huR - i_huL;
   t_real l_huJump =
       i_huR * i_huR - i_huL * i_huL + (g / 2) * (i_hR * i_hR - i_hL * i_hL);
 
-  // compute wave strengths
-  o_strengthL = l_rInv[0][0] * l_hJump;
-  o_strengthL += l_rInv[0][1] * l_huJump;
 
-  o_strengthR = l_rInv[1][0] * l_hJump;
-  o_strengthR += l_rInv[1][1] * l_huJump;
+  // compute the alpha values
+  o_strengthL  = l_detInv  * (i_waveSpeedR  * l_hJump  - l_huJump);
+  o_strengthR  = l_detInv  * (l_huJump - i_waveSpeedL * l_hJump );
+
 }
 
 void tsunami_lab::solvers::fwave::netUpdates(t_real i_hL, t_real i_hR,
@@ -101,11 +95,11 @@ void tsunami_lab::solvers::fwave::netUpdates(t_real i_hL, t_real i_hR,
   t_real l_waveL[2] = {0};
   t_real l_waveR[2] = {0};
 
-  l_waveL[0] = l_sL * l_aL;
-  l_waveL[1] = l_sL * l_aL * l_sL;
+  l_waveL[0] = l_aL;
+  l_waveL[1] = l_sL * l_aL;
 
-  l_waveR[0] = l_sR * l_aR;
-  l_waveR[1] = l_sR * l_aR * l_sR;
+  l_waveR[0] = l_aR;
+  l_waveR[1] = l_sR * l_aR;
 
   // set net-updates depending on wave speeds
   for (unsigned short l_qt = 0; l_qt < 2; l_qt++) {
@@ -115,16 +109,16 @@ void tsunami_lab::solvers::fwave::netUpdates(t_real i_hL, t_real i_hR,
 
     // 1st wave
     if (l_sL < 0) {
-      o_netUpdateL[l_qt] = l_waveL[l_qt];
+      o_netUpdateL[l_qt] += l_waveL[l_qt];
     } else {
-      o_netUpdateR[l_qt] = l_waveL[l_qt];
+      o_netUpdateR[l_qt] += l_waveL[l_qt];
     }
 
     // 2nd wave
     if (l_sR > 0) {
-      o_netUpdateR[l_qt] = l_waveR[l_qt];
+      o_netUpdateR[l_qt] += l_waveR[l_qt];
     } else {
-      o_netUpdateL[l_qt] = l_waveR[l_qt];
+      o_netUpdateL[l_qt] += l_waveR[l_qt];
     }
   }
 }

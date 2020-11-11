@@ -21,13 +21,37 @@ TEST_CASE("Test Eigenvalues lambda", "[lambdas]") {
    *
    */
 
-  float lambda[2];
-  lambda[0] = 0;
-  lambda[1] = 0;
-  tsunami_lab::solvers::fwave::getLambda(10, 9, -3, 3, lambda);
+  float l_waveSpeedL = 0;
+  float l_waveSpeedR = 0;
+  tsunami_lab::solvers::fwave::waveSpeeds(10, 9, -3, 3, l_waveSpeedL,
+  l_waveSpeedR);
 
-  REQUIRE(lambda[0] == Approx(-9.731109400863979));
-  REQUIRE(lambda[1] == Approx(9.573105166925635));
+  REQUIRE(l_waveSpeedL == Approx(-9.731109400863979));
+  REQUIRE(l_waveSpeedR == Approx(9.573105166925635));
 }
 
-TEST_CASE("Test steady states", "[steadyState]") {}
+TEST_CASE( "Test the derivation of the fwave net-updates.", "[fwaveUpdates]" ) {
+
+  float l_netUpdatesL[2] = { -5, 3 };
+  float l_netUpdatesR[2] = {  4, 7 };
+
+  /*
+   * Test case (trivial steady state):
+   *
+   *     left | right
+   *   h:  10 | 10
+   *  hu:   0 |  0
+   */
+  tsunami_lab::solvers::fwave::netUpdates( 10,
+                                         10,
+                                         0,
+                                         0,
+                                         l_netUpdatesL,
+                                         l_netUpdatesR );
+
+  REQUIRE( l_netUpdatesL[0] == Approx(0) );
+  REQUIRE( l_netUpdatesL[1] == Approx(0) );
+
+  REQUIRE( l_netUpdatesR[0] == Approx(0) );
+  REQUIRE( l_netUpdatesR[1] == Approx(0) );
+}
