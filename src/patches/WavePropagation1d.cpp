@@ -31,8 +31,7 @@
 #include "WavePropagation1d.h"
 #include "../solvers/Roe.h"
 
-tsunami_lab::patches::WavePropagation1d::WavePropagation1d(t_idx i_nCells,
-                                                           int solver) {
+tsunami_lab::patches::WavePropagation1d::WavePropagation1d(t_idx i_nCells) {
   m_nCells = i_nCells;
 
   // allocate memory including a single ghost cell on each side
@@ -57,7 +56,8 @@ tsunami_lab::patches::WavePropagation1d::~WavePropagation1d() {
   }
 }
 
-void tsunami_lab::patches::WavePropagation1d::timeStep(t_real i_scaling) {
+void tsunami_lab::patches::WavePropagation1d::timeStep(t_real i_scaling,
+                                                       int solver) {
   // pointers to old and new data
   t_real *l_hOld = m_h[m_step];
   t_real *l_huOld = m_hu[m_step];

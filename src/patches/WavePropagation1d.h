@@ -59,7 +59,7 @@ public:
    *
    * @param i_nCells number of cells.
    **/
-  WavePropagation1d(t_idx i_nCells, int solver);
+  WavePropagation1d(t_idx i_nCells);
 
   /**
    * Destructor which frees all allocated memory.
@@ -71,7 +71,7 @@ public:
    *
    * @param i_scaling scaling of the time step (dt / dx).
    **/
-  void timeStep(t_real i_scaling);
+  void timeStep(t_real i_scaling, int solver);
 
   /**
    * Sets the values of the ghost cells according to outflow boundary

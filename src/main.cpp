@@ -78,7 +78,7 @@ int main(int i_argc, char *i_argv[]) {
   l_setup = new tsunami_lab::setups::DamBreak1d(10, 5, 5);
   // construct solver
   tsunami_lab::patches::WavePropagation *l_waveProp;
-  l_waveProp = new tsunami_lab::patches::WavePropagation1d(l_nx, solver);
+  l_waveProp = new tsunami_lab::patches::WavePropagation1d(l_nx);
 
   // maximum observed height in the setup
   tsunami_lab::t_real l_hMax =
@@ -143,7 +143,7 @@ int main(int i_argc, char *i_argv[]) {
     }
 
     l_waveProp->setGhostOutflow();
-    l_waveProp->timeStep(l_scaling);
+    l_waveProp->timeStep(l_scaling, solver);
 
     l_timeStep++;
     l_simTime += l_dt;
