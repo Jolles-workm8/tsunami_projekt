@@ -51,7 +51,7 @@ int main(int i_argc, char *i_argv[]) {
   std::cout << "### http://scalable.uni-jena.de ###" << std::endl;
   std::cout << "###################################" << std::endl;
 
-  if (i_argc != 2) {
+  if (i_argc != 3) {
     std::cerr << "invalid number of arguments, usage:" << std::endl;
     std::cerr << "  ./build/tsunami_lab N_CELLS_X" << std::endl;
     std::cerr << "where N_CELLS_X is the number of cells in x-direction."
@@ -72,6 +72,10 @@ int main(int i_argc, char *i_argv[]) {
 
   // variable for solver
   int solver = atoi(i_argv[2]);
+  if (solver == 1) {
+    return 0;
+  }
+  // int solver = 0;
 
   // construct setup
   tsunami_lab::setups::Setup *l_setup;
