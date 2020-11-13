@@ -33,7 +33,7 @@
 #include "../solvers/fwave.h"
 #include <algorithm>
 #include <cmath>
-#include <stdlib>
+#include <cstdlib>
 
 tsunami_lab::patches::WavePropagation1d::WavePropagation1d(t_idx i_nCells) {
   m_nCells = i_nCells;
@@ -70,15 +70,18 @@ void tsunami_lab::patches::WavePropagation1d::timeStep(t_real i_scaling,
   t_real *l_hNew = m_h[m_step];
   t_real *l_huNew = m_hu[m_step];
 
-  // init new cell quantities
-  for (t_idx l_ce = 1; l_ce < m_nCells + 1; l_ce++) {
-    l_hNew[l_ce] = l_hOld[l_ce];
-    l_huNew[l_ce] = l_huOld[l_ce];
-  }
+
   // create check for the solver, just an integer with a value for each solver
 
   // Roe solver
   if (solver == 0) {
+
+    // init new cell quantities
+    for (t_idx l_ce = 1; l_ce < m_nCells + 1; l_ce++) {
+      l_hNew[l_ce] = l_hOld[l_ce];
+      l_huNew[l_ce] = l_huOld[l_ce];
+    }
+
     // iterate over edges and update with Riemann solutions
     for (t_idx l_ed = 0; l_ed < m_nCells + 1; l_ed++) {
       // determine left and right cell-id
@@ -101,8 +104,16 @@ void tsunami_lab::patches::WavePropagation1d::timeStep(t_real i_scaling,
     }
   }
   if (solver == 1) {
+
+    // init new cell quantities
+    for (t_idx l_ce = 1; l_ce < m_nCells + 1; l_ce++) {
+      l_hNew[l_ce] = 0;
+      l_huNew[l_ce] = 0;
+    }
+
     // define max wavespeed
     t_real l_speedMax = 0;
+    t_real l_speed = 0;
     // iterate over edges and update with Riemann solutions
     for (t_idx l_ed = 0; l_ed < m_nCells + 1; l_ed++) {
       // determine left and right cell-id
@@ -118,17 +129,17 @@ void tsunami_lab::patches::WavePropagation1d::timeStep(t_real i_scaling,
 
       l_speedMax = std::max(l_speedMax, l_speed);
 
-      l_hNew[l_ceL] = l_netUpdates[0][0];
-      l_huNew[l_ceL] = l_netUpdates[0][1];
+      l_hNew[l_ceL] += l_netUpdates[0][0];
+      l_huNew[l_ceL] += l_netUpdates[0][1];
 
-      l_hNew[l_ceR] = l_netUpdates[1][0];
-      l_huNew[l_ceR] = l_netUpdates[1][1];
+      l_hNew[l_ceR] += l_netUpdates[1][0];
+      l_huNew[l_ceR] += l_netUpdates[1][1];
     }
     // TODO solve dt
     for (t_idx l_ed = 0; l_ed < m_nCells + 1; l_ed++) {
 
-      l_hNew[l_ed] = l_hOld[l_ed] - i_scaling * (l_netUpdates[0][0] + l_netUpdates[0][1]);
-      l_huNew[l_ceL] = l_huOld * l_netUpdates[0][1];
+      l_hNew[l_ed] = l_hOld[l_ed] - i_scaling * l_hNew[l_ed];
+      l_huNew[l_ed] = l_huOld[l_ed] - i_scaling * l_huNew[l_ed];
 
     }
   }

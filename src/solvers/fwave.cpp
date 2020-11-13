@@ -31,7 +31,7 @@
 #include "fwave.h"
 #include <algorithm>
 #include <cmath>
-#include <stdlib>
+#include <cstdlib>
 
 // compute the lambdas we need
 void tsunami_lab::solvers::fwave::waveSpeeds(t_real i_hL, t_real i_hR,
@@ -74,7 +74,7 @@ void tsunami_lab::solvers::fwave::netUpdates(t_real i_hL, t_real i_hR,
                                              t_real i_huL, t_real i_huR,
                                              t_real o_netUpdateL[2],
                                              t_real o_netUpdateR[2],
-                                             t_real o_speed) {
+                                             t_real &o_speed) {
   // compute particle velocities
   t_real l_uL = i_huL / i_hL;
   t_real l_uR = i_huR / i_hR;

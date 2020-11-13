@@ -94,7 +94,7 @@ public:
    **/
   static void netUpdates(t_real i_hL, t_real i_hR, t_real i_huL, t_real i_huR,
                          t_real o_netUpdateL[2], t_real o_netUpdateR[2],
-                         t_real o_speed);
+                         t_real &o_speed);
 };
 
 #endif
