@@ -72,10 +72,6 @@ int main(int i_argc, char *i_argv[]) {
 
   // variable for solver
   int solver = atoi(i_argv[2]);
-  if (solver == 1) {
-    return 0;
-  }
-  // int solver = 0;
 
   // construct setup
   tsunami_lab::setups::Setup *l_setup;
@@ -111,7 +107,13 @@ int main(int i_argc, char *i_argv[]) {
     }
   }
 
-  // derive maximum wave speed in setup; the momentum is ignored
+  // set up time and print control
+  tsunami_lab::t_idx l_timeStep = 0;
+  tsunami_lab::t_idx l_nOut = 0;
+  tsunami_lab::t_real l_endTime = 1.25;
+  tsunami_lab::t_real l_simTime = 0;
+
+  // initialize the timescaling the momentum is ignored in the first step
   tsunami_lab::t_real l_speedMax = std::sqrt(9.81 * l_hMax);
 
   // derive constant time step; changes at simulation time are ignored
@@ -119,12 +121,6 @@ int main(int i_argc, char *i_argv[]) {
 
   // derive scaling for a time step
   tsunami_lab::t_real l_scaling = l_dt / l_dxy;
-
-  // set up time and print control
-  tsunami_lab::t_idx l_timeStep = 0;
-  tsunami_lab::t_idx l_nOut = 0;
-  tsunami_lab::t_real l_endTime = 1.25;
-  tsunami_lab::t_real l_simTime = 0;
 
   std::cout << "entering time loop" << std::endl;
 
