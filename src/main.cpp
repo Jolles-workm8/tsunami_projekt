@@ -31,6 +31,7 @@
 #include "io/Csv.h"
 #include "patches/WavePropagation1d.h"
 #include "setups/DamBreak1d.h"
+//#include "setups/Rare_rare1d.h"
 #include <cmath>
 #include <cstdlib>
 #include <fstream>

@@ -22,6 +22,7 @@ l_sources = [ 'solvers/Roe.cpp',
               'solvers/fwave.cpp',
               'patches/WavePropagation1d.cpp',
               'setups/DamBreak1d.cpp',
+              'setups/RareRare1d.cpp',
               'io/Csv.cpp' ]
 
 for l_so in l_sources:
