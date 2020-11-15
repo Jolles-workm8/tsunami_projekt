@@ -43,7 +43,7 @@ class tsunami_lab::solvers::fwave {
 private:
   //! square root of gravity
   static t_real constexpr m_gSqrt = 3.131557121;
-  static t_real constexpr g = 9.81;
+  static t_real constexpr g = 9.80665;
 
   /**
    * Computes the wave strengths.
