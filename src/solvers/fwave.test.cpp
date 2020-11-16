@@ -74,11 +74,10 @@ TEST_CASE( "Test the derivation of the fwave net-updates.", "[fwaveUpdates]" ) {
                                          l_netUpdatesL,
                                          l_netUpdatesR,  l_speed );
 
-  REQUIRE( l_netUpdatesL[0] == Approx( 41.950951524007173) );
-  REQUIRE( l_netUpdatesL[1] == Approx( -408.22929870739390) );
-
-  REQUIRE( l_netUpdatesR[0] == Approx( 15.049048475992827) );
-  REQUIRE( l_netUpdatesR[1] == Approx( 144.06612370739389 ) );
+  REQUIRE( l_netUpdatesL[0] == Approx( 33.5590017014261447899292 ) )
+  REQUIRE( l_netUpdatesL[1] == Approx( -326.56631690591093200508 ) );
+  REQUIRE( l_netUpdatesR[0] == Approx( 23.4409982985738561366777 ) );
+  REQUIRE( l_netUpdatesR[1] == Approx( 224.403141905910928927533 ) );
 
   /*
   * Test case:

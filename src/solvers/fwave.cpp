@@ -60,10 +60,11 @@ void tsunami_lab::solvers::fwave::waveStrengths(
   // compute inverse of right eigenvector-matrix
   t_real l_detInv = 1 / (i_waveSpeedR - i_waveSpeedL);
 
+
   // compute jump in quantities
   t_real l_hJump = i_huR - i_huL;
   t_real l_huJump =
-      i_huR * i_huR - i_huL * i_huL + (g / 2) * (i_hR * i_hR - i_hL * i_hL);
+      i_huR * i_huR / i_hR - i_huL * i_huL / i_hL + (g / 2) * (i_hR * i_hR - i_hL * i_hL);
 
   // compute the alpha values
   o_strengthL = l_detInv * (i_waveSpeedR * l_hJump - l_huJump);
