@@ -31,6 +31,7 @@
 #include "io/Csv.h"
 #include "patches/WavePropagation1d.h"
 #include "setups/DamBreak1d.h"
+#include "setups/DamBreakNew.h"
 #include "setups/RareRare1d.h"
 #include "setups/ShockShock1d.h"
 #include <cmath>
@@ -65,7 +66,7 @@ int main(int i_argc, char *i_argv[]) {
       std::cerr << "invalid number of cells" << std::endl;
       return EXIT_FAILURE;
     }
-    l_dxy = 10.0 / l_nx;
+    l_dxy = 30000.0 / l_nx;
   }
   std::cout << "runtime configuration" << std::endl;
   std::cout << "  number of cells in x-direction: " << l_nx << std::endl;
@@ -77,7 +78,7 @@ int main(int i_argc, char *i_argv[]) {
 
   // construct setup
   tsunami_lab::setups::Setup *l_setup;
-  l_setup = new tsunami_lab::setups::DamBreak1d(10, 5, 5);
+  l_setup = new tsunami_lab::setups::DamBreakNew(14, 3.5, 5000, 0.7);
   // construct solver
   tsunami_lab::patches::WavePropagation *l_waveProp;
   l_waveProp = new tsunami_lab::patches::WavePropagation1d(l_nx);
