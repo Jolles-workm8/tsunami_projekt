@@ -113,6 +113,16 @@ public:
    * @param i_hv momentum in y-direction.
    **/
   virtual void setMomentumY(t_idx i_ix, t_idx i_iy, t_real i_hv) = 0;
+
+  /**
+   * Sets the bathymetry value in x-direction to the given value.
+   *
+   * @param i_ix id of the cell in x-direction.
+   * @param i_iy id of the cell in y-direction.
+   * @param i_b bathymetry value of the cell.
+   **/
+
+  virtual void setBathymetry(t_idx i_ix, t_idx, t_real i_b) = 0;
 };
 
 #endif

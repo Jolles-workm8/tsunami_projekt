@@ -53,6 +53,9 @@ private:
   //! momenta for the current and next time step for all cells
   t_real *m_hu[2] = {nullptr, nullptr};
 
+  //! bathymetry data for all cells
+  t_real *m_b = nullptr;
+
 public:
   /**
    * Constructs the 1d wave propagation solver.
@@ -127,6 +130,14 @@ public:
    * Dummy function since there is no y-momentum in the 1d solver.
    **/
   void setMomentumY(t_idx, t_idx, t_real){};
+
+  /**
+   * Sets the bathymetry value in x-direction to the given value.
+   *
+   * @param i_ix id of the cell in x-direction.
+   * @param i_b bathymetry value of the cell.
+   **/
+  void setBathymetry(t_idx i_ix, t_idx, t_real i_b){m_b[i_ix + 1] = i_b; }
 };
 
 #endif
