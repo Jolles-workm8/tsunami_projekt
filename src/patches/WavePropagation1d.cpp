@@ -156,11 +156,21 @@ void tsunami_lab::patches::WavePropagation1d::setGhostOutflow() {
 
   // set left boundary
   l_h[0] = l_h[1];
-  l_hu[0] = l_hu[1];
   m_b[0] = m_b[1];
+  if(m_reflBoundL){
+    l_hu[0] = -l_hu[1];
+  }
+  else{
+    l_hu[0] = l_hu[1];
+  }
 
   // set right boundary
   l_h[m_nCells + 1] = l_h[m_nCells];
-  l_hu[m_nCells + 1] = l_hu[m_nCells];
   m_b[m_nCells + 1] = m_b[m_nCells];
+  if(m_reflBoundR){
+    l_hu[m_nCells + 1] = -l_hu[m_nCells];
+  }
+  else{
+    l_hu[m_nCells + 1] = l_hu[m_nCells];
+  }
 }

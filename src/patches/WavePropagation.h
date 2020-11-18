@@ -123,6 +123,14 @@ public:
    **/
 
   virtual void setBathymetry(t_idx i_ix, t_idx, t_real i_b) = 0;
+
+  /**
+   * Sets the ghost cells in row y to reflecting or not.
+   * @param i_iy row in which the ghost cells are set.
+   * @param i_reflL reflection of the left ghost cell.
+   * @param i_reflR reflection of the right ghost cell.
+   **/
+  virtual void setReflection(t_idx i_iy, bool i_reflL, bool i_reflR) = 0;
 };
 
 #endif

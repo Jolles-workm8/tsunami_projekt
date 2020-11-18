@@ -110,6 +110,8 @@ int main(int i_argc, char *i_argv[]) {
       l_waveProp->setMomentumY(l_cx, l_cy, l_hv);
 
       l_waveProp->setBathymetry(l_cx, l_cy, 0);
+
+      l_waveProp->setReflection(0, false, false);
     }
   }
 

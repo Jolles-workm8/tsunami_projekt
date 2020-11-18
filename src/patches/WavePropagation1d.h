@@ -56,6 +56,12 @@ private:
   //! bathymetry data for all cells
   t_real *m_b = nullptr;
 
+  //!  is left boundary reflecting
+  bool m_reflBoundL = false;
+
+  //!  is right boundary reflecting
+  bool m_reflBoundR = false;
+
 public:
   /**
    * Constructs the 1d wave propagation solver.
@@ -138,6 +144,17 @@ public:
    * @param i_b bathymetry value of the cell.
    **/
   void setBathymetry(t_idx i_ix, t_idx, t_real i_b){m_b[i_ix + 1] = i_b; }
+
+  /**
+   * Sets the ghost cells to reflecting or not.
+   *
+   * @param i_reflL reflection of the left ghost cell.
+   * @param i_reflR reflection of the right ghost cell.
+   **/
+  void setReflection(t_idx, bool i_reflL, bool i_reflR){
+    m_reflBoundL = i_reflL;
+    m_reflBoundR = i_reflR;
+  }
 };
 
 #endif
