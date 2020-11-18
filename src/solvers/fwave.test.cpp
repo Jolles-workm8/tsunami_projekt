@@ -124,4 +124,21 @@ TEST_CASE("Test the derivation of the fwave net-updates.", "[fwaveUpdates]") {
 
   REQUIRE(l_netUpdatesR[0] == Approx(0));
   REQUIRE(l_netUpdatesR[1] == Approx(0));
+  /*
+   * Test case (trivial steady state with bathymetry):
+   *
+   *     left | right
+   *   h:  10 | 8
+   *  hu:   0 |  0
+      b: -11 |-9
+   */
+
+  tsunami_lab::solvers::fwave::netUpdates(10, 8, 0, 0, -11, -9, l_netUpdatesL,
+                                          l_netUpdatesR, l_speed);
+
+  REQUIRE(l_netUpdatesL[0] == Approx(0));
+  REQUIRE(l_netUpdatesL[1] == Approx(0));
+
+  REQUIRE(l_netUpdatesR[0] == Approx(0));
+  REQUIRE(l_netUpdatesR[1] == Approx(0));
 }
