@@ -1,8 +1,8 @@
 /**
- * @author Alexander Breuer (alex.breuer AT uni-jena.de)
+ * @author Julius Isken, Max Engel
  *
  * @section LICENSE
- * Copyright 2020, Friedrich Schiller University Jena
+ * Copyright 2020, Julius Isken, Max Engel
  *
  * Redistribution and use in source and binary forms, with or without
  *modification, are permitted provided that the following conditions are met:
@@ -26,7 +26,7 @@
  *OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * @section DESCRIPTION
- * Roe Riemann solver for the shallow water equations.
+ * Fwave solver for the shallow water equations.
  **/
 #include "fwave.h"
 #include <algorithm>
@@ -57,14 +57,14 @@ void tsunami_lab::solvers::fwave::waveSpeeds(t_real i_hL, t_real i_hR,
 void tsunami_lab::solvers::fwave::waveStrengths(
     t_real i_hL, t_real i_hR, t_real i_huL, t_real i_huR, t_real i_waveSpeedL,
     t_real i_waveSpeedR, t_real &o_strengthL, t_real &o_strengthR) {
+
   // compute inverse of right eigenvector-matrix
   t_real l_detInv = 1 / (i_waveSpeedR - i_waveSpeedL);
 
-
-  // compute jump in quantities
+  // compute jump in the flux
   t_real l_hJump = i_huR - i_huL;
-  t_real l_huJump =
-      i_huR * i_huR / i_hR - i_huL * i_huL / i_hL + (g / 2) * (i_hR * i_hR - i_hL * i_hL);
+  t_real l_huJump = i_huR * i_huR / i_hR - i_huL * i_huL / i_hL +
+                    (g / 2) * (i_hR * i_hR - i_hL * i_hL);
 
   // compute the alpha values
   o_strengthL = l_detInv * (i_waveSpeedR * l_hJump - l_huJump);
@@ -76,7 +76,7 @@ void tsunami_lab::solvers::fwave::netUpdates(t_real i_hL, t_real i_hR,
                                              t_real o_netUpdateL[2],
                                              t_real o_netUpdateR[2],
                                              t_real &o_speed) {
-  // compute particle velocities
+  // compute particle velocities, redundant
   t_real l_uL = i_huL / i_hL;
   t_real l_uR = i_huR / i_hR;
 

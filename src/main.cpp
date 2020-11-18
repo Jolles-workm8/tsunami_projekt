@@ -34,6 +34,7 @@
 #include "setups/DamBreakNew.h"
 #include "setups/RareRare1d.h"
 #include "setups/ShockShock1d.h"
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <fstream>
@@ -113,7 +114,7 @@ int main(int i_argc, char *i_argv[]) {
   // set up time and print control
   tsunami_lab::t_idx l_timeStep = 0;
   tsunami_lab::t_idx l_nOut = 0;
-  tsunami_lab::t_real l_endTime = 1.25;
+  tsunami_lab::t_real l_endTime = 10000000.0;
   tsunami_lab::t_real l_simTime = 0;
 
   // initialize the timescaling the momentum is ignored in the first step
@@ -143,6 +144,12 @@ int main(int i_argc, char *i_argv[]) {
                                   l_waveProp->getMomentumX(), nullptr, l_file);
       l_file.close();
       l_nOut++;
+    }
+    // end the process if some values are reached
+    const tsunami_lab::t_real *min = l_waveProp->getHeight();
+    if (min[l_nx - 1] > 3.5) {
+      std::cout << "Village dead now" << l_simTime << std::endl;
+      break;
     }
 
     l_waveProp->setGhostOutflow();
