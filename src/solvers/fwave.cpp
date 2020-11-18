@@ -56,23 +56,29 @@ void tsunami_lab::solvers::fwave::waveSpeeds(t_real i_hL, t_real i_hR,
 // compute the inverse of the matrix
 void tsunami_lab::solvers::fwave::waveStrengths(
     t_real i_hL, t_real i_hR, t_real i_huL, t_real i_huR, t_real i_waveSpeedL,
-    t_real i_waveSpeedR, t_real &o_strengthL, t_real &o_strengthR) {
+    t_real i_waveSpeedR, t_real i_bL, t_real i_bR, t_real &o_strengthL,
+    t_real &o_strengthR) {
 
   // compute inverse of right eigenvector-matrix
   t_real l_detInv = 1 / (i_waveSpeedR - i_waveSpeedL);
 
+  // compute the bathymetry effect
+  t_real l_bathEff = -g * (i_bR - i_bL) * (i_hL + i_hR) / 2;
+
   // compute jump in the flux
-  t_real l_hJump = i_huR - i_huL;
-  t_real l_huJump = i_huR * i_huR / i_hR - i_huL * i_huL / i_hL +
+  t_real l_fJump_1 = i_huR - i_huL;
+  t_real l_fJump_2 = i_huR * i_huR / i_hR - i_huL * i_huL / i_hL +
                     (g / 2) * (i_hR * i_hR - i_hL * i_hL);
+  l_fJump_2 -= l_bathEff;
 
   // compute the alpha values
-  o_strengthL = l_detInv * (i_waveSpeedR * l_hJump - l_huJump);
-  o_strengthR = l_detInv * (l_huJump - i_waveSpeedL * l_hJump);
+  o_strengthL = l_detInv * (i_waveSpeedR * l_fJump_1 - l_fJump_2);
+  o_strengthR = l_detInv * (l_fJump_2 - i_waveSpeedL * l_fJump_1);
 }
 
 void tsunami_lab::solvers::fwave::netUpdates(t_real i_hL, t_real i_hR,
                                              t_real i_huL, t_real i_huR,
+                                             t_real i_bL, t_real i_bR,
                                              t_real o_netUpdateL[2],
                                              t_real o_netUpdateR[2],
                                              t_real &o_speed) {
@@ -90,7 +96,7 @@ void tsunami_lab::solvers::fwave::netUpdates(t_real i_hL, t_real i_hR,
   t_real l_aL = 0;
   t_real l_aR = 0;
 
-  waveStrengths(i_hL, i_hR, i_huL, i_huR, l_sL, l_sR, l_aL, l_aR);
+  waveStrengths(i_hL, i_hR, i_huL, i_huR, l_sL, l_sR, i_bL, i_bR, l_aL, l_aR);
 
   // compute scaled waves
   t_real l_waveL[2] = {0};

@@ -87,7 +87,7 @@ TEST_CASE("Test the derivation of the fwave net-updates.", "[fwaveUpdates]") {
   * z22 = a2*l2  = 15.049048475992827* 9.5731051658991654 = 144.06612370739389
   */
 
-  tsunami_lab::solvers::fwave::netUpdates(10, 9, -30, 27, l_netUpdatesL,
+  tsunami_lab::solvers::fwave::netUpdates(10, 9, -30, 27, 0, 0, l_netUpdatesL,
                                           l_netUpdatesR, l_speed);
 
   REQUIRE(l_netUpdatesL[0] == Approx(33.5590017014261447899292));
@@ -101,7 +101,7 @@ TEST_CASE("Test the derivation of the fwave net-updates.", "[fwaveUpdates]") {
    *  u: 0 | 0
    */
 
-  tsunami_lab::solvers::fwave::netUpdates(10, 8, 0, 0, l_netUpdatesL,
+  tsunami_lab::solvers::fwave::netUpdates(10, 8, 0, 0, 0, 0, l_netUpdatesL,
                                           l_netUpdatesR, l_speed);
 
   REQUIRE(l_netUpdatesL[0] == Approx(9.394671362));
@@ -116,7 +116,7 @@ TEST_CASE("Test the derivation of the fwave net-updates.", "[fwaveUpdates]") {
    *   h:  10 | 10
    *  hu:   0 |  0
    */
-  tsunami_lab::solvers::fwave::netUpdates(10, 10, 0, 0, l_netUpdatesL,
+  tsunami_lab::solvers::fwave::netUpdates(10, 10, 0, 0, 0, 0, l_netUpdatesL,
                                           l_netUpdatesR, l_speed);
 
   REQUIRE(l_netUpdatesL[0] == Approx(0));

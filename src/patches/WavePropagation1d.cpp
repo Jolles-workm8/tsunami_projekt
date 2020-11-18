@@ -124,7 +124,7 @@ void tsunami_lab::patches::WavePropagation1d::timeStep(t_real i_scaling,
       t_real l_netUpdates[2][2];
 
       solvers::fwave::netUpdates(l_hOld[l_ceL], l_hOld[l_ceR], l_huOld[l_ceL],
-                                 l_huOld[l_ceR], l_netUpdates[0],
+                                 l_huOld[l_ceR], 0, 0, l_netUpdates[0],
                                  l_netUpdates[1], l_speed);
 
       l_speedMax = std::max(l_speedMax, l_speed);
