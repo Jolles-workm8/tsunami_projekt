@@ -34,6 +34,8 @@
 #include "setups/DamBreakNew.h"
 #include "setups/RareRare1d.h"
 #include "setups/ShockShock1d.h"
+#include "setups/SubcriticalFlow.h"
+#include "setups/SupercriticalFlow.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
@@ -67,7 +69,7 @@ int main(int i_argc, char *i_argv[]) {
       std::cerr << "invalid number of cells" << std::endl;
       return EXIT_FAILURE;
     }
-    l_dxy = (tsunami_lab::t_real)10 / l_nx;
+    l_dxy = (tsunami_lab::t_real)25 / l_nx;
   }
 
   std::cout << "runtime configuration" << std::endl;
@@ -80,7 +82,7 @@ int main(int i_argc, char *i_argv[]) {
 
   // construct setup
   tsunami_lab::setups::Setup *l_setup;
-  l_setup = new tsunami_lab::setups::DamBreak1d(10, 7, 5);
+  l_setup = new tsunami_lab::setups::SupercriticalFlow();
   // construct solver
   tsunami_lab::patches::WavePropagation *l_waveProp;
   l_waveProp = new tsunami_lab::patches::WavePropagation1d(l_nx);
@@ -103,6 +105,8 @@ int main(int i_argc, char *i_argv[]) {
       tsunami_lab::t_real l_hu = l_setup->getMomentumX(l_x, l_y);
       tsunami_lab::t_real l_hv = l_setup->getMomentumY(l_x, l_y);
 
+      tsunami_lab::t_real l_b = l_setup->getBathymetry(l_x, l_y);
+
       // set initial values in wave propagation solver
       l_waveProp->setHeight(l_cx, l_cy, l_h);
 
@@ -110,16 +114,16 @@ int main(int i_argc, char *i_argv[]) {
 
       l_waveProp->setMomentumY(l_cx, l_cy, l_hv);
 
-      l_waveProp->setBathymetry(l_cx, l_cy, 0);
+      l_waveProp->setBathymetry(l_cx, l_cy, l_b);
 
-      l_waveProp->setReflection(0, false, true);
+      l_waveProp->setReflection(0, false, false);
     }
   }
 
   // set up time and print control
   tsunami_lab::t_idx l_timeStep = 0;
   tsunami_lab::t_idx l_nOut = 0;
-  tsunami_lab::t_real l_endTime = 1.5;
+  tsunami_lab::t_real l_endTime = 20;
   tsunami_lab::t_real l_simTime = 0;
 
   // initialize the timescaling the momentum is ignored in the first step
@@ -145,13 +149,14 @@ int main(int i_argc, char *i_argv[]) {
       std::ofstream l_file;
       l_file.open(l_path);
 
-      tsunami_lab::io::Csv::write(l_dxy, l_nx, 1, 1, l_waveProp->getHeight(),
+      tsunami_lab::io::Csv::write(l_dxy, l_nx, 1, 1,
+                                  l_waveProp->getHeight(),
                                   l_waveProp->getMomentumX(), nullptr,
                                   l_waveProp->getBathymetry(), l_file);
       l_file.close();
       l_nOut++;
     }
-    if(l_timeStep> 5000){break;}
+
     l_waveProp->setGhostOutflow();
     l_waveProp->timeStep(l_scaling, solver);
 

@@ -28,36 +28,61 @@
  * @section DESCRIPTION
  * One-dimensional dam break problem.
  **/
-#include "DamBreak1d.h"
+#ifndef TSUNAMI_LAB_SETUPS_SUPERCRITICAL_FLOW_H
+#define TSUNAMI_LAB_SETUPS_SUPERCRITICAL_FLOW_H
 
-tsunami_lab::setups::DamBreak1d::DamBreak1d(t_real i_heightLeft,
-                                            t_real i_heightRight,
-                                            t_real i_locationDam) {
-  m_heightLeft = i_heightLeft;
-  m_heightRight = i_heightRight;
-  m_locationDam = i_locationDam;
-}
+#include "Setup.h"
 
-tsunami_lab::t_real tsunami_lab::setups::DamBreak1d::getHeight(t_real i_x,
-                                                               t_real) const {
-  if (i_x < m_locationDam) {
-    return m_heightLeft;
-  } else {
-    return m_heightRight;
-  }
+namespace tsunami_lab {
+namespace setups {
+class SupercriticalFlow;
 }
+} // namespace tsunami_lab
 
-tsunami_lab::t_real
-tsunami_lab::setups::DamBreak1d::getMomentumX(t_real, t_real) const {
-  return 0;
-}
+/**
+ * 1d dam break setup.
+ **/
+class tsunami_lab::setups::SupercriticalFlow : public Setup {
+private:
 
-tsunami_lab::t_real
-tsunami_lab::setups::DamBreak1d::getMomentumY(t_real, t_real) const {
-  return 0;
-}
+public:
+  /**
+   * Constructor.
+   *
+   * @param i_heightLeft water height on the left side of the dam.
+   * @param i_heightRight water height on the right side of the dam.
+   * @param i_locationDam location (x-coordinate) of the dam.
+   **/
+  SupercriticalFlow();
 
-tsunami_lab::t_real
-tsunami_lab::setups::DamBreak1d::getBathymetry(t_real, t_real) const {
-  return 0;
-}
+  /**
+   * Gets the water height at a given point.
+   *
+   * @param i_x x-coordinate of the queried point.
+   * @return height at the given point.
+   **/
+  t_real getHeight(t_real i_x, t_real) const;
+
+  /**
+   * Gets the momentum in x-direction.
+   *
+   * @return momentum in x-direction.
+   **/
+  t_real getMomentumX(t_real, t_real) const;
+
+  /**
+   * Gets the momentum in y-direction.
+   *
+   * @return momentum in y-direction.
+   **/
+  t_real getMomentumY(t_real, t_real) const;
+
+  /**
+   * Gets the bathymetry data.
+   *
+   * @return the bathymetry data.
+   **/
+  t_real getBathymetry(t_real, t_real) const;
+};
+
+#endif

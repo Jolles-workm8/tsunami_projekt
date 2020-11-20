@@ -88,6 +88,13 @@ public:
    * @return momentum in y-direction.
    **/
   t_real getMomentumY(t_real, t_real) const;
+
+  /**
+   * Gets the bathymetry data.
+   *
+   * @return the bathymetry data.
+   **/
+  t_real getBathymetry(t_real, t_real) const;
 };
 
 #endif

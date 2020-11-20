@@ -1,8 +1,8 @@
 /**
- * @author Julius Isken, Max Engel
+ * @author Alexander Breuer (alex.breuer AT uni-jena.de)
  *
  * @section LICENSE
- * Copyright 2020, Julius Isken, Max Engel
+ * Copyright 2020, Friedrich Schiller University Jena
  *
  * Redistribution and use in source and binary forms, with or without
  *modification, are permitted provided that the following conditions are met:
@@ -26,37 +26,63 @@
  *OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * @section DESCRIPTION
- * one-dimensional rare rare problem
+ * One-dimensional dam break problem.
  **/
-#include "RareRare1d.h"
+#ifndef TSUNAMI_LAB_SETUPS_SUBCRITICAL_FLOW_H
+#define TSUNAMI_LAB_SETUPS_SUBCRITICAL_FLOW_H
 
-tsunami_lab::setups::RareRare1d::RareRare1d(t_real i_impuls, t_real i_location,
-                                            t_real i_height) {
-  m_impuls = i_impuls;
-  m_location = i_location;
-  m_height = i_height;
-}
+#include "Setup.h"
 
-tsunami_lab::t_real tsunami_lab::setups::RareRare1d::getHeight(t_real,
-                                                               t_real) const {
-  return m_height;
+namespace tsunami_lab {
+namespace setups {
+class SubcriticalFlow;
 }
+} // namespace tsunami_lab
 
-tsunami_lab::t_real
-tsunami_lab::setups::RareRare1d::getMomentumX(t_real i_x, t_real) const {
-  if (i_x < m_location) {
-    return -m_impuls;
-  } else {
-    return m_impuls;
-  }
-}
+/**
+ * 1d dam break setup.
+ **/
+class tsunami_lab::setups::SubcriticalFlow : public Setup {
+private:
+  
+public:
+  /**
+   * Constructor.
+   *
+   * @param i_heightLeft water height on the left side of the dam.
+   * @param i_heightRight water height on the right side of the dam.
+   * @param i_locationDam location (x-coordinate) of the dam.
+   **/
+  SubcriticalFlow();
 
-tsunami_lab::t_real
-tsunami_lab::setups::RareRare1d::getMomentumY(t_real, t_real) const {
-  return 0;
-}
+  /**
+   * Gets the water height at a given point.
+   *
+   * @param i_x x-coordinate of the queried point.
+   * @return height at the given point.
+   **/
+  t_real getHeight(t_real i_x, t_real) const;
 
-tsunami_lab::t_real
-tsunami_lab::setups::RareRare1d ::getBathymetry(t_real, t_real) const {
-  return 0;
-}
+  /**
+   * Gets the momentum in x-direction.
+   *
+   * @return momentum in x-direction.
+   **/
+  t_real getMomentumX(t_real, t_real) const;
+
+  /**
+   * Gets the momentum in y-direction.
+   *
+   * @return momentum in y-direction.
+   **/
+  t_real getMomentumY(t_real, t_real) const;
+
+  /**
+   * Gets the bathymetry data.
+   *
+   * @return the bathymetry data.
+   **/
+  t_real getBathymetry(t_real, t_real) const;
+};
+
+#endif

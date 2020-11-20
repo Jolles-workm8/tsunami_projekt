@@ -25,6 +25,8 @@ l_sources = [ 'solvers/Roe.cpp',
               'setups/RareRare1d.cpp',
               'setups/ShockShock1d.cpp',
               'setups/DamBreakNew.cpp',
+              'setups/SupercriticalFlow.cpp',
+              'setups/SubcriticalFlow.cpp',
               'io/Csv.cpp' ]
 
 for l_so in l_sources:
