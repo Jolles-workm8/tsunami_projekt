@@ -67,8 +67,9 @@ int main(int i_argc, char *i_argv[]) {
       std::cerr << "invalid number of cells" << std::endl;
       return EXIT_FAILURE;
     }
-    l_dxy = 30000.0 / l_nx;
+    l_dxy = (tsunami_lab::t_real)10 / l_nx;
   }
+
   std::cout << "runtime configuration" << std::endl;
   std::cout << "  number of cells in x-direction: " << l_nx << std::endl;
   std::cout << "  number of cells in y-direction: " << l_ny << std::endl;
@@ -79,7 +80,7 @@ int main(int i_argc, char *i_argv[]) {
 
   // construct setup
   tsunami_lab::setups::Setup *l_setup;
-  l_setup = new tsunami_lab::setups::DamBreakNew(14, 3.5, 5000, 0.7);
+  l_setup = new tsunami_lab::setups::DamBreak1d(10, 7, 5);
   // construct solver
   tsunami_lab::patches::WavePropagation *l_waveProp;
   l_waveProp = new tsunami_lab::patches::WavePropagation1d(l_nx);
@@ -111,14 +112,14 @@ int main(int i_argc, char *i_argv[]) {
 
       l_waveProp->setBathymetry(l_cx, l_cy, 0);
 
-      l_waveProp->setReflection(0, false, false);
+      l_waveProp->setReflection(0, false, true);
     }
   }
 
   // set up time and print control
   tsunami_lab::t_idx l_timeStep = 0;
   tsunami_lab::t_idx l_nOut = 0;
-  tsunami_lab::t_real l_endTime = 10000000.0;
+  tsunami_lab::t_real l_endTime = 1.5;
   tsunami_lab::t_real l_simTime = 0;
 
   // initialize the timescaling the momentum is ignored in the first step
@@ -145,17 +146,12 @@ int main(int i_argc, char *i_argv[]) {
       l_file.open(l_path);
 
       tsunami_lab::io::Csv::write(l_dxy, l_nx, 1, 1, l_waveProp->getHeight(),
-                                  l_waveProp->getMomentumX(), nullptr, l_file);
+                                  l_waveProp->getMomentumX(), nullptr,
+                                  l_waveProp->getBathymetry(), l_file);
       l_file.close();
       l_nOut++;
     }
-    // end the process if some values are reached
-    const tsunami_lab::t_real *min = l_waveProp->getHeight();
-    if (min[l_nx - 1] > 3.5) {
-      std::cout << "Village dead now" << l_simTime << std::endl;
-      break;
-    }
-
+    if(l_timeStep> 5000){break;}
     l_waveProp->setGhostOutflow();
     l_waveProp->timeStep(l_scaling, solver);
 

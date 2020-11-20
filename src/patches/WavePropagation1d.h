@@ -113,6 +113,12 @@ public:
    * Dummy function which returns a nullptr.
    **/
   t_real const *getMomentumY() { return nullptr; }
+  /**
+   * Gets the cells' bathymetry in x-direction.
+   *
+   * @return bathymetry in x-direction.
+   **/
+  t_real const *getBathymetry() { return m_b + 1; }
 
   /**
    * Sets the height of the cell to the given value.
@@ -151,6 +157,8 @@ public:
    * @param i_reflL reflection of the left ghost cell.
    * @param i_reflR reflection of the right ghost cell.
    **/
+
+
   void setReflection(t_idx, bool i_reflL, bool i_reflR){
     m_reflBoundL = i_reflL;
     m_reflBoundR = i_reflR;

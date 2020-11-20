@@ -88,6 +88,13 @@ public:
   virtual t_real const *getMomentumY() = 0;
 
   /**
+   * Gets the cells' bathymetry in x-direction.
+   *
+   * @return bathymetry in x-direction.
+   **/
+  virtual t_real const *getBathymetry() = 0;
+
+  /**
    * Sets the height of the cell to the given value.
    *
    * @param i_ix id of the cell in x-direction.
