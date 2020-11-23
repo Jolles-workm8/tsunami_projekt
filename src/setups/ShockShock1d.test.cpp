@@ -28,8 +28,9 @@
  * @section DESCRIPTION
  * Tests the Shock-Shock setup.
  **/
-#include "ShockShock1d.h"
 #include <catch2/catch.hpp>
+
+#include "ShockShock1d.h"
 
 TEST_CASE("Test the 1-dimensional shock shock setup", "[ShockShock1d]") {
   tsunami_lab::setups::ShockShock1d l_shockShock(10, 15, 20);

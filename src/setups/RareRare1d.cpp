@@ -42,8 +42,8 @@ tsunami_lab::t_real tsunami_lab::setups::RareRare1d::getHeight(t_real,
   return m_height;
 }
 
-tsunami_lab::t_real
-tsunami_lab::setups::RareRare1d::getMomentumX(t_real i_x, t_real) const {
+tsunami_lab::t_real tsunami_lab::setups::RareRare1d::getMomentumX(
+    t_real i_x, t_real) const {
   if (i_x < m_location) {
     return -m_impuls;
   } else {
@@ -51,12 +51,12 @@ tsunami_lab::setups::RareRare1d::getMomentumX(t_real i_x, t_real) const {
   }
 }
 
-tsunami_lab::t_real
-tsunami_lab::setups::RareRare1d::getMomentumY(t_real, t_real) const {
+tsunami_lab::t_real tsunami_lab::setups::RareRare1d::getMomentumY(
+    t_real, t_real) const {
   return 0;
 }
 
-tsunami_lab::t_real
-tsunami_lab::setups::RareRare1d ::getBathymetry(t_real, t_real) const {
+tsunami_lab::t_real tsunami_lab::setups::RareRare1d ::getBathymetry(
+    t_real, t_real) const {
   return 0;
 }

@@ -28,8 +28,9 @@
  * @section DESCRIPTION
  * Unit tests for the one-dimensional wave propagation patch.
  **/
-#include "WavePropagation1d.h"
 #include <catch2/catch.hpp>
+
+#include "WavePropagation1d.h"
 
 TEST_CASE("Test the 1d wave propagation solver.", "[WaveProp1d]") {
   /*

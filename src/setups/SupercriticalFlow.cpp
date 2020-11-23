@@ -30,12 +30,10 @@
  **/
 #include "SupercriticalFlow.h"
 
-tsunami_lab::setups::SupercriticalFlow::SupercriticalFlow() {
+tsunami_lab::setups::SupercriticalFlow::SupercriticalFlow() {}
 
-}
-
-tsunami_lab::t_real tsunami_lab::setups::SupercriticalFlow::getHeight(t_real i_x,
-                                                               t_real) const {
+tsunami_lab::t_real tsunami_lab::setups::SupercriticalFlow::getHeight(
+    t_real i_x, t_real) const {
   if (i_x > 8 && i_x < 12) {
     return 0.13 + 0.05 * (i_x - 10) * (i_x - 10);
   } else {
@@ -43,19 +41,18 @@ tsunami_lab::t_real tsunami_lab::setups::SupercriticalFlow::getHeight(t_real i_x
   }
 }
 
-tsunami_lab::t_real
-tsunami_lab::setups::SupercriticalFlow::getMomentumX(t_real, t_real) const {
+tsunami_lab::t_real tsunami_lab::setups::SupercriticalFlow::getMomentumX(
+    t_real, t_real) const {
   return 0.18;
 }
 
-tsunami_lab::t_real
-tsunami_lab::setups::SupercriticalFlow::getMomentumY(t_real, t_real) const {
+tsunami_lab::t_real tsunami_lab::setups::SupercriticalFlow::getMomentumY(
+    t_real, t_real) const {
   return 0;
 }
 
-tsunami_lab::t_real
-tsunami_lab::setups::SupercriticalFlow::getBathymetry(t_real i_x, t_real) const {
-
+tsunami_lab::t_real tsunami_lab::setups::SupercriticalFlow::getBathymetry(
+    t_real i_x, t_real) const {
   if (i_x > 8 && i_x < 12) {
     return -0.13 - 0.05 * (i_x - 10) * (i_x - 10);
   } else {

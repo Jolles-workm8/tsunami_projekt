@@ -37,10 +37,10 @@ namespace tsunami_lab {
 namespace patches {
 class WavePropagation1d;
 }
-} // namespace tsunami_lab
+}  // namespace tsunami_lab
 
 class tsunami_lab::patches::WavePropagation1d : public WavePropagation {
-private:
+ private:
   //! current step which indicates the active values in the arrays below
   unsigned short m_step = 0;
 
@@ -62,7 +62,7 @@ private:
   //!  is right boundary reflecting
   bool m_reflBoundR = false;
 
-public:
+ public:
   /**
    * Constructs the 1d wave propagation solver.
    *
@@ -149,7 +149,7 @@ public:
    * @param i_ix id of the cell in x-direction.
    * @param i_b bathymetry value of the cell.
    **/
-  void setBathymetry(t_idx i_ix, t_idx, t_real i_b){m_b[i_ix + 1] = i_b; }
+  void setBathymetry(t_idx i_ix, t_idx, t_real i_b) { m_b[i_ix + 1] = i_b; }
 
   /**
    * Sets the ghost cells to reflecting or not.
@@ -158,8 +158,7 @@ public:
    * @param i_reflR reflection of the right ghost cell.
    **/
 
-
-  void setReflection(t_idx, bool i_reflL, bool i_reflR){
+  void setReflection(t_idx, bool i_reflL, bool i_reflR) {
     m_reflBoundL = i_reflL;
     m_reflBoundR = i_reflR;
   }

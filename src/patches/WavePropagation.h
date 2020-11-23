@@ -37,10 +37,10 @@ namespace tsunami_lab {
 namespace patches {
 class WavePropagation;
 }
-} // namespace tsunami_lab
+}  // namespace tsunami_lab
 
 class tsunami_lab::patches::WavePropagation {
-public:
+ public:
   /**
    * Virtual destructor for base class.
    **/

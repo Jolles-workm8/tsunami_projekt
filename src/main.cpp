@@ -28,6 +28,13 @@
  * @section DESCRIPTION
  * Entry-point for simulations.
  **/
+#include <algorithm>
+#include <cmath>
+#include <cstdlib>
+#include <fstream>
+#include <iostream>
+#include <limits>
+
 #include "io/Csv.h"
 #include "patches/WavePropagation1d.h"
 #include "setups/DamBreak1d.h"
@@ -36,12 +43,6 @@
 #include "setups/ShockShock1d.h"
 #include "setups/SubcriticalFlow.h"
 #include "setups/SupercriticalFlow.h"
-#include <algorithm>
-#include <cmath>
-#include <cstdlib>
-#include <fstream>
-#include <iostream>
-#include <limits>
 
 int main(int i_argc, char *i_argv[]) {
   // number of cells in x- and y-direction
@@ -149,8 +150,7 @@ int main(int i_argc, char *i_argv[]) {
       std::ofstream l_file;
       l_file.open(l_path);
 
-      tsunami_lab::io::Csv::write(l_dxy, l_nx, 1, 1,
-                                  l_waveProp->getHeight(),
+      tsunami_lab::io::Csv::write(l_dxy, l_nx, 1, 1, l_waveProp->getHeight(),
                                   l_waveProp->getMomentumX(), nullptr,
                                   l_waveProp->getBathymetry(), l_file);
       l_file.close();

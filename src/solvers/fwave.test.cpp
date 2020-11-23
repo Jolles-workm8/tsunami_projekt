@@ -57,7 +57,6 @@ TEST_CASE("Test Eigenvalues lambda", "[lambdas]") {
 }
 
 TEST_CASE("Test the derivation of the fwave net-updates.", "[fwaveUpdates]") {
-
   float l_netUpdatesL[2] = {-5, 3};
   float l_netUpdatesR[2] = {4, 7};
   float l_speed = 0;

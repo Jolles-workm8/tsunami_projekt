@@ -37,13 +37,13 @@ namespace tsunami_lab {
 namespace setups {
 class DamBreakNew;
 }
-} // namespace tsunami_lab
+}  // namespace tsunami_lab
 
 /**
  * 1d dam break setup.
  **/
 class tsunami_lab::setups::DamBreakNew : public Setup {
-private:
+ private:
   //! height on the left side
   t_real m_heightLeft = 0;
 
@@ -56,7 +56,7 @@ private:
   //! momentum the river
   t_real m_momentumRiver = 0;
 
-public:
+ public:
   /**
    * Constructor.
    *

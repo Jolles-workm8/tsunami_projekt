@@ -37,14 +37,14 @@ namespace tsunami_lab {
 namespace setups {
 class ShockShock1d;
 }
-} // namespace tsunami_lab
+}  // namespace tsunami_lab
 
 /**
  * 1d Rare Rare problem
  **/
 
 class tsunami_lab::setups::ShockShock1d : public Setup {
-private:
+ private:
   //! impuls of the wave
   t_real m_impuls = 0;
 
@@ -54,7 +54,7 @@ private:
   //! water height in x
   t_real m_height = 0;
 
-public:
+ public:
   /**
    *Constructor
    * @param i_impuls impuls of the waves namely hu

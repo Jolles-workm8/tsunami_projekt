@@ -37,13 +37,13 @@ namespace tsunami_lab {
 namespace solvers {
 class fwave;
 }
-} // namespace tsunami_lab
+}  // namespace tsunami_lab
 
 class tsunami_lab::solvers::fwave {
-private:
+ private:
   //! square root of gravity
   static t_real constexpr m_gSqrt = 3.131557121;
-  static t_real constexpr g = 9.80665;
+  static t_real constexpr m_g = 9.80665;
 
   /**
    * Computes the wave strengths.
@@ -65,9 +65,8 @@ private:
    **/
   static void waveStrengths(t_real i_hL, t_real i_hR, t_real i_huL,
                             t_real i_huR, t_real i_waveSpeedL,
-                            t_real i_waveSpeedR,t_real i_bL,
-                            t_real i_bR, t_real &o_strengthL,
-                            t_real &o_strengthR);
+                            t_real i_waveSpeedR, t_real i_bL, t_real i_bR,
+                            t_real &o_strengthL, t_real &o_strengthR);
   /**
    * Computes the wave speeds.
    *
@@ -83,7 +82,7 @@ private:
   static void waveSpeeds(t_real i_hL, t_real i_hR, t_real i_uL, t_real i_uR,
                          t_real &o_waveSpeedL, t_real &o_waveSpeedR);
 
-public:
+ public:
   /**
    * Computes the net-updates.
    *
@@ -94,7 +93,7 @@ public:
    * @param i_bL height of the ground compared to the Water surface on the
    *left side.
    * @param i_bL height of the ground compared to the Water surface on the
-   *right side. 
+   *right side.
    * @param o_netUpdateL will be set to the net-updates for the left side; 0:
    *height, 1: momentum.
    * @param o_netUpdateR will be set to the net-updates for the right side; 0:
@@ -102,9 +101,8 @@ public:
    * @param o_speed returns the greater of the 2 Roe values
    **/
   static void netUpdates(t_real i_hL, t_real i_hR, t_real i_huL, t_real i_huR,
-                         t_real i_bL, t_real i_bR,
-                         t_real o_netUpdateL[2], t_real o_netUpdateR[2],
-                         t_real &o_speed);
+                         t_real i_bL, t_real i_bR, t_real o_netUpdateL[2],
+                         t_real o_netUpdateR[2], t_real &o_speed);
 };
 
 #endif

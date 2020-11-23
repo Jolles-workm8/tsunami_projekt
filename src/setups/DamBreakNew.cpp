@@ -49,8 +49,8 @@ tsunami_lab::t_real tsunami_lab::setups::DamBreakNew::getHeight(t_real i_x,
   }
 }
 
-tsunami_lab::t_real
-tsunami_lab::setups::DamBreakNew::getMomentumX(t_real i_x, t_real) const {
+tsunami_lab::t_real tsunami_lab::setups::DamBreakNew::getMomentumX(
+    t_real i_x, t_real) const {
   if (i_x < m_locationDam) {
     return 0;
   } else {
@@ -58,12 +58,12 @@ tsunami_lab::setups::DamBreakNew::getMomentumX(t_real i_x, t_real) const {
   }
 }
 
-tsunami_lab::t_real
-tsunami_lab::setups::DamBreakNew::getMomentumY(t_real, t_real) const {
+tsunami_lab::t_real tsunami_lab::setups::DamBreakNew::getMomentumY(
+    t_real, t_real) const {
   return 0;
 }
 
-tsunami_lab::t_real
-tsunami_lab::setups::DamBreakNew::getBathymetry(t_real, t_real) const {
+tsunami_lab::t_real tsunami_lab::setups::DamBreakNew::getBathymetry(
+    t_real, t_real) const {
   return 0;
 }

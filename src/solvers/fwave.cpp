@@ -29,6 +29,7 @@
  * Fwave solver for the shallow water equations.
  **/
 #include "fwave.h"
+
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
@@ -58,17 +59,16 @@ void tsunami_lab::solvers::fwave::waveStrengths(
     t_real i_hL, t_real i_hR, t_real i_huL, t_real i_huR, t_real i_waveSpeedL,
     t_real i_waveSpeedR, t_real i_bL, t_real i_bR, t_real &o_strengthL,
     t_real &o_strengthR) {
-
   // compute inverse of right eigenvector-matrix
   t_real l_detInv = 1 / (i_waveSpeedR - i_waveSpeedL);
 
   // compute the bathymetry effect
-  t_real l_bathEff = -g * (i_bR - i_bL) * (i_hL + i_hR) / 2;
+  t_real l_bathEff = -m_g * (i_bR - i_bL) * (i_hL + i_hR) / 2;
 
   // compute jump in the flux
   t_real l_fJump_1 = i_huR - i_huL;
   t_real l_fJump_2 = i_huR * i_huR / i_hR - i_huL * i_huL / i_hL +
-                    (g / 2) * (i_hR * i_hR - i_hL * i_hL);
+                     (m_g / 2) * (i_hR * i_hR - i_hL * i_hL);
   l_fJump_2 -= l_bathEff;
 
   // compute the alpha values

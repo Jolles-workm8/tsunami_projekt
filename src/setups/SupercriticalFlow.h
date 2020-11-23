@@ -37,15 +37,14 @@ namespace tsunami_lab {
 namespace setups {
 class SupercriticalFlow;
 }
-} // namespace tsunami_lab
+}  // namespace tsunami_lab
 
 /**
  * 1d dam break setup.
  **/
 class tsunami_lab::setups::SupercriticalFlow : public Setup {
-private:
-
-public:
+ private:
+ public:
   /**
    * Constructor.
    *
