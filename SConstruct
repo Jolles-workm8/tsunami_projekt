@@ -52,8 +52,7 @@ env.Append( CXXFLAGS = [ '-std=c++11',
                          '-Wall',
                          '-Wextra',
                          '-Wpedantic',
-                         '-Werror',
-                         '-lm' ] )
+                         '-Werror' ] )
 
 # set optimization mode
 if 'debug' in env['mode']:
@@ -76,6 +75,9 @@ if 'san' in  env['mode']:
 
 # add Catch2
 env.Append( CXXFLAGS = [ '-Isubmodules/Catch2/single_include' ] )
+
+# add Boost
+env.Append( CXXFLAGS = [ '-Isubmodules/outcome/single-header'])
 
 # get source files
 VariantDir( variant_dir = 'build/src',

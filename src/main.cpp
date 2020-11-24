@@ -28,6 +28,7 @@
  * @section DESCRIPTION
  * Entry-point for simulations.
  **/
+
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
