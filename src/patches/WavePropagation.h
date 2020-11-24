@@ -129,7 +129,7 @@ class tsunami_lab::patches::WavePropagation {
    * @param i_b bathymetry value of the cell.
    **/
 
-  virtual void setBathymetry(t_idx i_ix, t_idx, t_real i_b) = 0;
+  virtual void setBathymetry(t_idx i_ix, t_idx i_y, t_real i_b) = 0;
 
   /**
    * Sets the ghost cells in row y to reflecting or not.

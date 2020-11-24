@@ -42,26 +42,35 @@ tsunami_lab::patches::WavePropagation2d::WavePropagation2d(t_idx i_xCells,
   m_yCells = i_yCells;
 
   // allocate memory including ghostcells on each side.
-  // TODO maybe use STL containers in the future to avoid memory leaks...
-  for (unsigned short l_st = 0 : l_st < 2 : l_st++) {
-    m_h[l_st] = new t_real[m_xCells + 2][m_yCells + 2]();
-    m_hu[l_st] = new t_real[m_xCells + 2][m_yCells + 2]();
-    m_hv[l_st] = new t_real[m_xCells + 2][m_yCells + 2]();
+  for (unsigned short l_st = 0; l_st < 2; l_st++) {
+    m_h[l_st] = new t_real[(m_xCells + 2) * (m_yCells + 2)];
+    m_hu[l_st] = new t_real[(m_xCells + 2) * (m_yCells + 2)];
+    m_hv[l_st] = new t_real[(m_xCells + 2) * (m_yCells + 2)];
   }
-  m_b = new t_real[m_xCells + 2][m_yCells + 2]();
+  m_b = new t_real[(m_xCells + 2) * (m_yCells + 2)];
 
   // init to zero
+  for (unsigned short l_ce = 0; l_ce != (m_xCells + 2) * (m_yCells + 2);
+       l_ce++) {
+    m_b[l_ce] = 0;
+    for (unsigned short l_st = 0; l_st < 2; l_st++) {
+      m_h[l_st][l_ce] = 0;
+      m_hu[l_st][l_ce] = 0;
+      m_hv[l_st][l_ce] = 0;
+    }
+  }
+}
+
+tsunami_lab::patches::WavePropagation2d::~WavePropagation2d() {
+  delete[] m_b;
+
   for (unsigned short l_st = 0; l_st < 2; l_st++) {
-    for (t_idx l_xe = 0; l_xe < i_xCells; l_xe++) {
-      for (t_idx l_ye = 0; l_ye < i_yCells; l_ye++) {
-        m_h[l_st][l_xe][l_ye] = 0;
-        m_hu[l_st][l_xe][l_ye] = 0;
-        m_hv[l_st][l_xe][l_ye] = 0;
-      }
-    }
+    delete[] m_h[l_st];
+    delete[] m_hu[l_st];
+    delete[] m_hv[l_st];
   }
-  for (t_idx l_xe = 0; l_xe < i_xCells; l_xe++) {
-    for (t_idx l_ye = 0; l_ye < i_yCells; l_ye++) {
-      m_b[l_xe][l_ye] = 0;
-    }
-  }
+}
+
+void tsunami_lab::patches::WavePropagation2d::timeStep(t_real, int) {}
+
+void tsunami_lab::patches::WavePropagation2d::setGhostOutflow() {}

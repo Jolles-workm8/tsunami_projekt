@@ -70,6 +70,8 @@ class tsunami_lab::patches::WavePropagation2d : public WavePropagation {
   //!  is right boundary reflecting
   bool m_reflBoundR = false;
 
+  //! is top boundary reflecting
+
  public:
   /**
    * Constructs the 2d wave propagation solver.
@@ -102,34 +104,34 @@ class tsunami_lab::patches::WavePropagation2d : public WavePropagation {
    *
    * @return stride in y-direction.
    **/
-  // t_idx getStride() { return m_nCells + 2; }
+  t_idx getStride() { return (m_xCells + 2); }
 
   /**
    * Gets cells' water heights.
    *
    * @return water heights.
    */
-  t_real const *getHeight() { return m_h[m_step] + 1; }
+  t_real const *getHeight() { return m_h[m_step] + 1 + m_xCells; }
 
   /**
    * Gets the cells' momenta in x-direction.
    *
    * @return momenta in x-direction.
    **/
-  t_real const *getMomentumX() { return m_hu[m_step] + 1; }
+  t_real const *getMomentumX() { return m_hu[m_step] + 1 + m_xCells; }
 
   /**
    * Gets the cell's momentum in y-direction.
    *
    * @return momenta in y-direction.
    **/
-  t_real const *getMomentumY() { return m_hv[m_step] + 1; }
+  t_real const *getMomentumY() { return m_hv[m_step] + 1 + m_xCells; }
   /**
    * Gets the cells' bathymetry in x-direction.
    *
    * @return bathymetry in x-direction.
    **/
-  t_real const *getBathymetry() { return m_b + 1; }
+  t_real const *getBathymetry() { return m_b + 1 + m_xCells; }
 
   /**
    * Sets the height of the cell to the given value.
@@ -139,7 +141,7 @@ class tsunami_lab::patches::WavePropagation2d : public WavePropagation {
    * @param i_h water height.
    **/
   void setHeight(t_idx i_ix, t_idx i_iy, t_real i_h) {
-    m_h[m_step][i_ix + 1][i_iy + 1] = i_h;
+    m_h[m_step][(i_ix + 1) + ((i_iy + 1) * m_xCells)] = i_h;
   }
 
   /**
@@ -149,8 +151,8 @@ class tsunami_lab::patches::WavePropagation2d : public WavePropagation {
    * @param i_hu momentum in x-direction.
    * @param i_y id of the cell in y-direction.
    **/
-  void setMomentumX(t_idx i_ix, t_idx i_y, t_real i_hu) {
-    m_hu[m_step][i_ix + 1][i_iy + 1] = i_hu;
+  void setMomentumX(t_idx i_ix, t_idx i_iy, t_real i_hu) {
+    m_hu[m_step][(i_ix + 1) + ((i_iy + 1) * m_xCells)] = i_hu;
   }
 
   /**
@@ -160,8 +162,8 @@ class tsunami_lab::patches::WavePropagation2d : public WavePropagation {
    * @param i_ix id of the cell in x-direction.
    * @param i_hu momentum in x-direction.
    **/
-  void setMomentumY(t_idx i_x, t_idx i_y, t_real i_hv) {
-    m_hu[m_step][i_ix + 1][i_iy + 1] = i_hu;
+  void setMomentumY(t_idx i_ix, t_idx i_iy, t_real i_hv) {
+    m_hu[m_step][(i_ix + 1) + ((i_iy + 1) * m_xCells)] = i_hv;
   };
 
   /**
@@ -171,7 +173,9 @@ class tsunami_lab::patches::WavePropagation2d : public WavePropagation {
    * @param i_iy id of the cell in y-direction.
    * @param i_b bathymetry value of the cell.
    **/
-  void setBathymetry(t_idx i_ix, t_idx i_y, t_real i_b) { m_b[i_ix + 1] = i_b; }
+  void setBathymetry(t_idx i_ix, t_idx i_iy, t_real i_b) {
+    m_b[(i_ix + 1) + ((i_iy + 1) * m_xCells)] = i_b;
+  }
 
   /**
    * Sets the ghost cells to reflecting or not.
@@ -180,7 +184,7 @@ class tsunami_lab::patches::WavePropagation2d : public WavePropagation {
    * @param i_reflR reflection of the right ghost cell.
    **/
 
-  // TODO : überlegen was hier eigentlich los ist....
+  // TODO : überlegen wie man Top Bottom left righ gut impleemntiert
   void setReflection(t_idx, bool i_reflL, bool i_reflR) {
     m_reflBoundL = i_reflL;
     m_reflBoundR = i_reflR;
