@@ -91,7 +91,7 @@ void tsunami_lab::patches::WavePropagation2d::timeStep(t_real i_scaling,
       l_huNew[l_ce] = l_huOld[l_ce];
       l_hvNew[l_ce] = l_hvOld[l_ce];
     }
-    // iterate over all collums in x direction
+    // iterate over all collums in x direction with ghost cells
     for (t_idx l_ceY = 0; l_ceY < (m_yCells + 2); l_ceY++) {
       // iterate over edges in x direction and update with Riemann solutions
       for (t_idx l_ceX = 0; l_ceX < (m_xCells + 1); l_ceX++) {
@@ -115,10 +115,10 @@ void tsunami_lab::patches::WavePropagation2d::timeStep(t_real i_scaling,
       }
     }
 
-    // iterate over all collums in y direction without Ghost Cells
-    for (t_idx l_ceX = 1; l_ceX < (m_yCells + 1); l_ceX++) {
+    // iterate over all rows in y direction without ghost cells
+    for (t_idx l_ceX = 1; l_ceX < (m_xCells + 1); l_ceX++) {
       // iterate over edges in y direction and update with Riemann solutions
-      for (t_idx l_ceY = 0; l_ceY < (m_xCells + 1); l_ceY++) {
+      for (t_idx l_ceY = 0; l_ceY < (m_yCells + 1); l_ceY++) {
         // determine left and right cell-id
         t_idx l_ceB = calculateArrayPosition(l_ceX, l_ceY);
         t_idx l_ceT = calculateArrayPosition(l_ceX, l_ceY + 1);

@@ -118,27 +118,27 @@ class tsunami_lab::patches::WavePropagation2d : public WavePropagation {
    *
    * @return water heights.
    */
-  t_real const *getHeight() { return m_h[m_step] + 1 + m_xCells; }
+  t_real const *getHeight() { return m_h[m_step] + 3 + m_xCells; }
 
   /**
    * Gets the cells' momenta in x-direction.
    *
    * @return momenta in x-direction.
    **/
-  t_real const *getMomentumX() { return m_hu[m_step] + 1 + m_xCells; }
+  t_real const *getMomentumX() { return m_hu[m_step] + 3 + m_xCells; }
 
   /**
    * Gets the cell's momentum in y-direction.
    *
    * @return momenta in y-direction.
    **/
-  t_real const *getMomentumY() { return m_hv[m_step] + 1 + m_xCells; }
+  t_real const *getMomentumY() { return m_hv[m_step] + 3 + m_xCells; }
   /**
    * Gets the cells' bathymetry in x-direction.
    *
    * @return bathymetry in x-direction.
    **/
-  t_real const *getBathymetry() { return m_b + 1 + m_xCells; }
+  t_real const *getBathymetry() { return m_b + 3 + m_xCells; }
 
   /**
    * Sets the height of the cell to the given value.
