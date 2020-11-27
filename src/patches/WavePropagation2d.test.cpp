@@ -68,8 +68,9 @@ TEST_CASE("Test the 2d wave propagation solver.", "[WaveProp2d]") {
   // perform a time step
   m_waveProp.timeStep(0.1, 0);
 
-  // steady state
+
   for(std::size_t l_ceY = 0; l_ceY<10; l_ceY++){
+      // steady state
     for (std::size_t l_ce = 0; l_ce < 49; l_ce++) {
       REQUIRE(m_waveProp.getHeight()[l_ce + 101 * l_ceY] == Approx(10));
       REQUIRE(m_waveProp.getMomentumX()[l_ce + 101 * l_ceY] == Approx(0));
