@@ -70,7 +70,7 @@ class tsunami_lab::patches::WavePropagation2d : public WavePropagation {
   //!  is right boundary reflecting
   bool m_reflBoundR = false;
 
-  //! is top boundary reflecting
+
 
  public:
   /**
@@ -98,6 +98,13 @@ class tsunami_lab::patches::WavePropagation2d : public WavePropagation {
    *conditions.
    **/
   void setGhostOutflow();
+
+  /**
+   * calculate the position in one dimensional array
+   *
+   * @return the position.
+   **/
+  t_idx calculateArrayPosition(t_idx i_ix, t_idx i_iy){return i_ix + (i_iy*(m_xCells+2));}
 
   /**
    * Gets the stride in y-direction. x-direction is stride-1.

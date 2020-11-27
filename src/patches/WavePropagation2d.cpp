@@ -73,4 +73,36 @@ tsunami_lab::patches::WavePropagation2d::~WavePropagation2d() {
 
 void tsunami_lab::patches::WavePropagation2d::timeStep(t_real, int) {}
 
-void tsunami_lab::patches::WavePropagation2d::setGhostOutflow() {}
+
+void tsunami_lab::patches::WavePropagation2d::setGhostOutflow() {
+
+  t_real *l_h = m_h[m_step];
+  t_real *l_hu = m_hu[m_step];
+  t_real *l_hv = m_hv[m_step];
+  t_idx l_displacementFrom;
+  t_idx l_displacementTo;
+
+
+  //set ghost outflow for all outer cells
+  //displacement = (m_xCells+2)*(m_yCells + 1);
+  for (unsigned short l_ce = 1; l_ce < (m_xCells);
+       l_ce++) {
+         l_displacementFrom = calculateArrayPosition(l_ce, 1);
+         l_h[l_ce] = l_h[l_displacementFrom];
+         l_hu[l_ce] = l_hu[l_displacementFrom];
+         l_hv[l_ce] = l_hv[l_displacementFrom];
+
+         l_displacementFrom = calculateArrayPosition(l_ce, m_xCells - 1);
+         l_displacementTo = calculateArrayPosition(l_ce, m_xCells);
+         l_h[l_displacementTo] = l_h[l_displacementFrom];
+         l_hu[l_displacementTo] = l_hu[l_displacementFrom];
+         l_hv[l_displacementTo] = l_hv[l_displacementFrom];
+
+       }
+/*
+  for (unsigned short l_ce = 0; l_ce < (m_yCells + 2);
+      l_ce++) {
+
+      }
+*/
+}
