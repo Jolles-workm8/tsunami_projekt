@@ -112,13 +112,10 @@ void tsunami_lab::patches::WavePropagation1d::timeStep(t_real i_scaling,
   if (solver == 1) {
     // init new cell quantities
     for (t_idx l_ce = 1; l_ce < m_nCells + 1; l_ce++) {
-      l_hNew[l_ce] = 0;
-      l_huNew[l_ce] = 0;
+      l_hNew[l_ce] = l_hOld[l_ce];
+      l_huNew[l_ce] = l_huOld[l_ce];
     }
 
-    // define max wavespeed
-    t_real l_speedMax = 0;
-    t_real l_speed = 0;
     // iterate over edges and update with Riemann solutions
     for (t_idx l_ed = 0; l_ed < m_nCells + 1; l_ed++) {
       // determine left and right cell-id
@@ -130,20 +127,14 @@ void tsunami_lab::patches::WavePropagation1d::timeStep(t_real i_scaling,
 
       solvers::fwave::netUpdates(l_hOld[l_ceL], l_hOld[l_ceR], l_huOld[l_ceL],
                                  l_huOld[l_ceR], m_b[l_ceL], m_b[l_ceR],
-                                 l_netUpdates[0], l_netUpdates[1], l_speed);
+                                 l_netUpdates[0], l_netUpdates[1]);
 
-      l_speedMax = std::max(l_speedMax, l_speed);
+      // update the cells' quantities
+      l_hNew[l_ceL] -= i_scaling * l_netUpdates[0][0];
+      l_huNew[l_ceL] -= i_scaling * l_netUpdates[0][1];
 
-      l_hNew[l_ceL] += l_netUpdates[0][0];
-      l_huNew[l_ceL] += l_netUpdates[0][1];
-
-      l_hNew[l_ceR] += l_netUpdates[1][0];
-      l_huNew[l_ceR] += l_netUpdates[1][1];
-    }
-    // TODO solve dt
-    for (t_idx l_ed = 0; l_ed < m_nCells + 1; l_ed++) {
-      l_hNew[l_ed] = l_hOld[l_ed] - i_scaling * l_hNew[l_ed];
-      l_huNew[l_ed] = l_huOld[l_ed] - i_scaling * l_huNew[l_ed];
+      l_hNew[l_ceR] -= i_scaling * l_netUpdates[1][0];
+      l_huNew[l_ceR] -= i_scaling * l_netUpdates[1][1];
     }
   }
 }

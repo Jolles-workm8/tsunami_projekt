@@ -80,8 +80,7 @@ void tsunami_lab::solvers::fwave::netUpdates(t_real i_hL, t_real i_hR,
                                              t_real i_huL, t_real i_huR,
                                              t_real i_bL, t_real i_bR,
                                              t_real o_netUpdateL[2],
-                                             t_real o_netUpdateR[2],
-                                             t_real &o_speed) {
+                                             t_real o_netUpdateR[2]) {
   // compute particle velocities, redundant
   t_real l_uL = i_huL / i_hL;
   t_real l_uR = i_huR / i_hR;
@@ -107,9 +106,6 @@ void tsunami_lab::solvers::fwave::netUpdates(t_real i_hL, t_real i_hR,
 
   l_waveR[0] = l_aR;
   l_waveR[1] = l_sR * l_aR;
-
-  // compute the max wavespeed of the 2 Volumes
-  o_speed = std::max(std::abs(l_sL), std::abs(l_sR));
 
   // set net-updates depending on wave speeds
   for (unsigned short l_qt = 0; l_qt < 2; l_qt++) {
