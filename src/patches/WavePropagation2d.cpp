@@ -34,6 +34,7 @@
 #include <cmath>
 #include <cstdlib>
 
+#include "../solvers/Roe.h"
 #include "../solvers/fwave.h"
 
 tsunami_lab::patches::WavePropagation2d::WavePropagation2d(t_idx i_xCells,
@@ -71,7 +72,76 @@ tsunami_lab::patches::WavePropagation2d::~WavePropagation2d() {
   }
 }
 
-void tsunami_lab::patches::WavePropagation2d::timeStep(t_real, int) {}
+void tsunami_lab::patches::WavePropagation2d::timeStep(t_real i_scaling , int solver) {
+  // pointers to old and new data
+  t_real *l_hOld = m_h[m_step];
+  t_real *l_huOld = m_hu[m_step];
+  t_real *l_hvOld = m_hv[m_step];
+
+  m_step = (m_step + 1) % 2;
+  t_real *l_hNew = m_h[m_step];
+  t_real *l_huNew = m_hu[m_step];
+  t_real *l_hvNew = m_hv[m_step];
+
+  if (solver == 0) {
+
+    // init new cell quantities
+    for (t_idx l_ce = 1; l_ce < (m_xCells + 2) * (m_yCells + 2); l_ce++) {
+      l_hNew[l_ce] = l_hOld[l_ce];
+      l_huNew[l_ce] = l_huOld[l_ce];
+      l_hvNew[l_ce] = l_hvOld[l_ce];
+    }
+    //iterate over all collums in x direction
+    for (t_idx l_ed = 0; l_ed < (m_yCells + 2); l_ed++) {
+
+      // iterate over edges in x direction and update with Riemann solutions
+      for (t_idx l_ed = 0; l_ed < (m_xCells + 1); l_ed++) {
+        // determine left and right cell-id
+        t_idx l_ceL = l_ed;
+        t_idx l_ceR = l_ed + 1;
+
+        // compute net-updates
+        t_real l_netUpdates[2][2];
+
+        solvers::Roe::netUpdates(l_hNew[l_ceL], l_hNew[l_ceR], l_huOld[l_ceL],
+                               l_huOld[l_ceR], l_netUpdates[0],
+                               l_netUpdates[1]);
+
+        // update the cells' quantities
+        l_hNew[l_ceL] -= i_scaling * l_netUpdates[0][0];
+        l_huNew[l_ceL] -= i_scaling * l_netUpdates[0][1];
+
+        l_hNew[l_ceR] -= i_scaling * l_netUpdates[1][0];
+        l_huNew[l_ceR] -= i_scaling * l_netUpdates[1][1];
+      }
+    }
+
+    //iterate over all collums in y direction without Ghost Cells
+    for (t_idx l_ed = 1; l_ed < (m_yCells + 1); l_ed++) {
+
+      // iterate over edges in y direction and update with Riemann solutions
+      for (t_idx l_ed = 0; l_ed < (m_xCells + 1); l_ed++) {
+        // determine left and right cell-id
+        t_idx l_ceL = l_ed;
+        t_idx l_ceR = l_ed + 1;
+
+        // compute net-updates
+        t_real l_netUpdates[2][2];
+
+        solvers::Roe::netUpdates(l_hNew[l_ceL], l_hNew[l_ceR], l_hvOld[l_ceL],
+                               l_hvOld[l_ceR], l_netUpdates[0],
+                               l_netUpdates[1]);
+
+        // update the cells' quantities
+        l_hNew[l_ceL] -= i_scaling * l_netUpdates[0][0];
+        l_hvNew[l_ceL] -= i_scaling * l_netUpdates[0][1];
+
+        l_hNew[l_ceR] -= i_scaling * l_netUpdates[1][0];
+        l_hvNew[l_ceR] -= i_scaling * l_netUpdates[1][1];
+      }
+    }
+  }
+}
 
 
 void tsunami_lab::patches::WavePropagation2d::setGhostOutflow() {
@@ -88,9 +158,10 @@ void tsunami_lab::patches::WavePropagation2d::setGhostOutflow() {
   for (unsigned short l_ce = 1; l_ce < (m_xCells);
        l_ce++) {
          l_displacementFrom = calculateArrayPosition(l_ce, 1);
-         l_h[l_ce] = l_h[l_displacementFrom];
-         l_hu[l_ce] = l_hu[l_displacementFrom];
-         l_hv[l_ce] = l_hv[l_displacementFrom];
+         l_displacementTo = calculateArrayPosition(l_ce, 0);
+         l_h[l_displacementTo] = l_h[l_displacementFrom];
+         l_hu[l_displacementTo] = l_hu[l_displacementFrom];
+         l_hv[l_displacementTo] = l_hv[l_displacementFrom];
 
          l_displacementFrom = calculateArrayPosition(l_ce, m_xCells - 1);
          l_displacementTo = calculateArrayPosition(l_ce, m_xCells);
@@ -99,10 +170,20 @@ void tsunami_lab::patches::WavePropagation2d::setGhostOutflow() {
          l_hv[l_displacementTo] = l_hv[l_displacementFrom];
 
        }
-/*
+
   for (unsigned short l_ce = 0; l_ce < (m_yCells + 2);
       l_ce++) {
+        l_displacementFrom = calculateArrayPosition(1, l_ce);
+        l_displacementTo = calculateArrayPosition(0, l_ce);
+        l_h[l_displacementTo] = l_h[l_displacementFrom];
+        l_hu[l_displacementTo] = l_hu[l_displacementFrom];
+        l_hv[l_displacementTo] = l_hv[l_displacementFrom];
 
+        l_displacementFrom = calculateArrayPosition(m_yCells - 1, l_ce);
+        l_displacementTo = calculateArrayPosition(m_yCells, l_ce);
+        l_h[l_displacementTo] = l_h[l_displacementFrom];
+        l_hu[l_displacementTo] = l_hu[l_displacementFrom];
+        l_hv[l_displacementTo] = l_hv[l_displacementFrom];
       }
-*/
+
 }
