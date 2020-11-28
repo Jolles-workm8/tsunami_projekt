@@ -82,10 +82,16 @@ int main(int i_argc, char *i_argv[]) {
     l_ny = atoi(i_argv[2]);
     if (l_ny < 1) {
       std::cerr << "invalid number of cells in y-direction" << std::endl;
+      return EXIT_FAILURE;
     }
     l_dxy = (tsunami_lab::t_real)25 / l_nx;
 
     solver = atoi(i_argv[3]);
+    if (!(solver == 0 || solver == 1)) {
+      std::cerr << "invalid setup for solver, use 0 or 1 to set up solver"
+                << std::endl;
+      return EXIT_FAILURE;
+    }
   }
 
   std::cout << "runtime configuration" << std::endl;
