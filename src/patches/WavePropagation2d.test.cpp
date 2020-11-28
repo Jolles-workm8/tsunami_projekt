@@ -32,7 +32,8 @@
 
 #include "WavePropagation2d.h"
 
-TEST_CASE("Test the 2d wave propagation solver.", "[WaveProp2d]") {
+
+TEST_CASE("Test the 2d wave propagation solver in a steady State.", "[WaveProp2dSteady]") {
   /*
    * Test case:
    *
@@ -51,19 +52,30 @@ TEST_CASE("Test the 2d wave propagation solver.", "[WaveProp2d]") {
    */
 
   // construct solver and setup a dambreak problem
-  tsunami_lab::patches::WavePropagation2d m_waveProp(8, 3);
-  for (std::size_t l_ceY = 0; l_ceY < 3; l_ceY++) {
-    for (std::size_t l_ceX = 0; l_ceX < 8; l_ceX++) {
+  std::size_t l_xRows = 8;
+  std::size_t l_yColums = 3;
+  tsunami_lab::patches::WavePropagation2d m_waveProp(l_xRows, l_yColums);
+  for (std::size_t l_ceY = 0; l_ceY < l_yColums; l_ceY++) {
+    for (std::size_t l_ceX = 0; l_ceX < l_xRows; l_ceX++) {
       m_waveProp.setHeight(l_ceX, l_ceY, 10);
       m_waveProp.setMomentumX(l_ceX, l_ceY, 0);
+      m_waveProp.setMomentumY(l_ceX, l_ceY, 0);
     }
   }
   // set outflow boundary condition
   m_waveProp.setGhostOutflow();
 
   // perform a time step
-  //  m_waveProp.timeStep(0.1, 0);
+  m_waveProp.timeStep(0.1, 0);
 
+  for(std::size_t l_ceY = 0; l_ceY< l_yColums; l_ceY++){
+      // steady state
+    for (std::size_t l_ce = 0; l_ce < l_xRows; l_ce++) {
+      REQUIRE(m_waveProp.getHeight()[l_ce + l_xRows * l_ceY] == Approx(10));
+      REQUIRE(m_waveProp.getMomentumX()[l_ce + l_xRows * l_ceY] == Approx(0));
+      REQUIRE(m_waveProp.getMomentumY()[l_ce + l_xRows * l_ceY] == Approx(0));
+    }
+  }
   /*
     for(std::size_t l_ceY = 0; l_ceY<10; l_ceY++){
         // steady state

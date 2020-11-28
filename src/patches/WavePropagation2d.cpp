@@ -84,13 +84,14 @@ void tsunami_lab::patches::WavePropagation2d::timeStep(t_real i_scaling,
   t_real *l_huNew = m_hu[m_step];
   t_real *l_hvNew = m_hv[m_step];
 
+  // init new cell quantities
+  for (t_idx l_ce = 0; l_ce < (m_xCells + 2) * (m_yCells + 2); l_ce++) {
+    l_hNew[l_ce] = l_hOld[l_ce];
+    l_huNew[l_ce] = l_huOld[l_ce];
+    l_hvNew[l_ce] = l_hvOld[l_ce];
+  }
+
   if (solver == 0) {
-    // init new cell quantities
-    for (t_idx l_ce = 0; l_ce < (m_xCells + 2) * (m_yCells + 2); l_ce++) {
-      l_hNew[l_ce] = l_hOld[l_ce];
-      l_huNew[l_ce] = l_huOld[l_ce];
-      l_hvNew[l_ce] = l_hvOld[l_ce];
-    }
     // iterate over all collums in x direction with ghost cells
     for (t_idx l_ceY = 0; l_ceY < (m_yCells + 2); l_ceY++) {
       // iterate over edges in x direction and update with Riemann solutions
@@ -114,7 +115,7 @@ void tsunami_lab::patches::WavePropagation2d::timeStep(t_real i_scaling,
         l_huNew[l_ceR] -= i_scaling * l_netUpdates[1][1];
       }
     }
-
+    /*
     // iterate over all rows in y direction without ghost cells
     for (t_idx l_ceX = 1; l_ceX < (m_xCells + 1); l_ceX++) {
       // iterate over edges in y direction and update with Riemann solutions
@@ -137,7 +138,7 @@ void tsunami_lab::patches::WavePropagation2d::timeStep(t_real i_scaling,
         l_hNew[l_ceT] -= i_scaling * l_netUpdates[1][0];
         l_hvNew[l_ceT] -= i_scaling * l_netUpdates[1][1];
       }
-    }
+    }*/
   }
 }
 
@@ -150,29 +151,29 @@ void tsunami_lab::patches::WavePropagation2d::setGhostOutflow() {
 
   // set ghost outflow for all outer cells
   // displacement = (m_xCells+2)*(m_yCells + 1);
-  for (unsigned short l_ce = 1; l_ce < (m_xCells); l_ce++) {
+  for (unsigned short l_ce = 1; l_ce <= (m_xCells); l_ce++) {
     l_displacementFrom = calculateArrayPosition(l_ce, 1);
     l_displacementTo = calculateArrayPosition(l_ce, 0);
     l_h[l_displacementTo] = l_h[l_displacementFrom];
     l_hu[l_displacementTo] = l_hu[l_displacementFrom];
     l_hv[l_displacementTo] = l_hv[l_displacementFrom];
 
-    l_displacementFrom = calculateArrayPosition(l_ce, m_xCells);
-    l_displacementTo = calculateArrayPosition(l_ce, m_xCells + 1);
+    l_displacementFrom = calculateArrayPosition(l_ce, m_yCells);
+    l_displacementTo = calculateArrayPosition(l_ce, m_yCells+1);
     l_h[l_displacementTo] = l_h[l_displacementFrom];
     l_hu[l_displacementTo] = l_hu[l_displacementFrom];
     l_hv[l_displacementTo] = l_hv[l_displacementFrom];
   }
 
-  for (unsigned short l_ce = 0; l_ce < (m_yCells + 2); l_ce++) {
+  for (unsigned short l_ce = 0; l_ce <= (m_yCells + 1); l_ce++) {
     l_displacementFrom = calculateArrayPosition(1, l_ce);
     l_displacementTo = calculateArrayPosition(0, l_ce);
     l_h[l_displacementTo] = l_h[l_displacementFrom];
     l_hu[l_displacementTo] = l_hu[l_displacementFrom];
     l_hv[l_displacementTo] = l_hv[l_displacementFrom];
 
-    l_displacementFrom = calculateArrayPosition(m_yCells, l_ce);
-    l_displacementTo = calculateArrayPosition(m_yCells + 1, l_ce);
+    l_displacementFrom = calculateArrayPosition(m_xCells, l_ce);
+    l_displacementTo = calculateArrayPosition(m_xCells + 1, l_ce);
     l_h[l_displacementTo] = l_h[l_displacementFrom];
     l_hu[l_displacementTo] = l_hu[l_displacementFrom];
     l_hv[l_displacementTo] = l_hv[l_displacementFrom];
