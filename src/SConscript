@@ -26,6 +26,7 @@ l_sources = [ 'solvers/Roe.cpp',
               'setups/RareRare1d.cpp',
               'setups/ShockShock1d.cpp',
               'setups/DamBreakNew.cpp',
+              'setups/CircularDamBreak2d.cpp',
               'setups/SupercriticalFlow.cpp',
               'setups/SubcriticalFlow.cpp',
               'io/Csv.cpp' ]
