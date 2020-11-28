@@ -115,7 +115,7 @@ void tsunami_lab::patches::WavePropagation2d::timeStep(t_real i_scaling,
         l_huNew[l_ceR] -= i_scaling * l_netUpdates[1][1];
       }
     }
-    /*
+
     // iterate over all rows in y direction without ghost cells
     for (t_idx l_ceX = 1; l_ceX < (m_xCells + 1); l_ceX++) {
       // iterate over edges in y direction and update with Riemann solutions
@@ -138,7 +138,7 @@ void tsunami_lab::patches::WavePropagation2d::timeStep(t_real i_scaling,
         l_hNew[l_ceT] -= i_scaling * l_netUpdates[1][0];
         l_hvNew[l_ceT] -= i_scaling * l_netUpdates[1][1];
       }
-    }*/
+    }
   }
 }
 
@@ -159,7 +159,7 @@ void tsunami_lab::patches::WavePropagation2d::setGhostOutflow() {
     l_hv[l_displacementTo] = l_hv[l_displacementFrom];
 
     l_displacementFrom = calculateArrayPosition(l_ce, m_yCells);
-    l_displacementTo = calculateArrayPosition(l_ce, m_yCells+1);
+    l_displacementTo = calculateArrayPosition(l_ce, m_yCells + 1);
     l_h[l_displacementTo] = l_h[l_displacementFrom];
     l_hu[l_displacementTo] = l_hu[l_displacementFrom];
     l_hv[l_displacementTo] = l_hv[l_displacementFrom];

@@ -28,8 +28,8 @@
  * @section DESCRIPTION
  * Two-dimensional wave propagation patch.
  **/
-#ifndef TSUNAMI_LAB_PATCHES_WAVE_PROPAGATION_1D
-#define TSUNAMI_LAB_PATCHES_WAVE_PROPAGATION_1D
+#ifndef TSUNAMI_LAB_PATCHES_WAVE_PROPAGATION_2D
+#define TSUNAMI_LAB_PATCHES_WAVE_PROPAGATION_2D
 
 #include "WavePropagation.h"
 
