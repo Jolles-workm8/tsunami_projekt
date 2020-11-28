@@ -51,6 +51,7 @@ int main(int i_argc, char *i_argv[]) {
   tsunami_lab::t_idx l_nx = 0;
   tsunami_lab::t_idx l_ny = 1;
   int solver;
+
   // set cell size
   tsunami_lab::t_real l_dxy = 1;
 
@@ -60,13 +61,12 @@ int main(int i_argc, char *i_argv[]) {
   std::cout << "### http://scalable.uni-jena.de ###" << std::endl;
   std::cout << "###################################" << std::endl;
 
-  if (i_argc != 4) {
+  if (i_argc != 3) {
     std::cerr << "invalid number of arguments, usage:" << std::endl;
     std::cerr << "  ./build/tsunami_lab N_CELLS_X N_CELLS_Y SOLVER"
               << std::endl;
-    std::cerr << "where N_CELLS_X is the number of cells in x-direction."
-              << std::endl;
-    std::cerr << "where N_CELLS_Y is the number of cells in y-direction"
+    std::cerr << "where N_CELLS_X is the number of cells in x-direction and "
+                 "y-direction."
               << std::endl;
     std::cerr << "where SOLVER is the solver of one iteration. Type 0 for "
                  "roe-solver and 1 for fwave solver."
@@ -75,18 +75,13 @@ int main(int i_argc, char *i_argv[]) {
   } else {
     l_nx = atoi(i_argv[1]);
     if (l_nx < 1) {
-      std::cerr << "invalid number of cells in x-direction" << std::endl;
+      std::cerr << "invalid number of cells" << std::endl;
       return EXIT_FAILURE;
     }
-
-    l_ny = atoi(i_argv[2]);
-    if (l_ny < 1) {
-      std::cerr << "invalid number of cells in y-direction" << std::endl;
-      return EXIT_FAILURE;
-    }
+    l_ny = l_nx;
     l_dxy = (tsunami_lab::t_real)25 / l_nx;
 
-    solver = atoi(i_argv[3]);
+    solver = atoi(i_argv[2]);
     if (!(solver == 0 || solver == 1)) {
       std::cerr << "invalid setup for solver, use 0 or 1 to set up solver"
                 << std::endl;
