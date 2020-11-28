@@ -66,7 +66,7 @@ TEST_CASE("Test the 2d wave propagation solver in a steady State.", "[WaveProp2d
   m_waveProp.setGhostOutflow();
 
   // perform a time step
-  m_waveProp.timeStep(0.1, 0);
+  m_waveProp.timeStep(0.1, 1);
 
   for(std::size_t l_ceY = 0; l_ceY< l_yColums; l_ceY++){
       // steady state

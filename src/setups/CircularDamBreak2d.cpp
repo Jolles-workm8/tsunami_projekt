@@ -42,7 +42,9 @@ tsunami_lab::t_real tsunami_lab::setups::CircularDamBreak2d::getHeight(t_real i_
 
   if (std::sqrt(i_x * i_x + i_y * i_y) < 10) {
     return 10;
-  } else {
+  } else if(i_x > 30){
+    return 2;
+  } else{
     return 5;
   }
 }
@@ -58,6 +60,13 @@ tsunami_lab::t_real tsunami_lab::setups::CircularDamBreak2d::getMomentumY(
 }
 
 tsunami_lab::t_real tsunami_lab::setups::CircularDamBreak2d::getBathymetry(
-    t_real, t_real) const {
-  return 0;
+    t_real i_x, t_real) const {
+      i_x -= 50;
+
+      if(i_x > 30){
+        return -2;
+      }else{
+        return -5;
+      }
+
 }

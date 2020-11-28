@@ -77,7 +77,7 @@ class tsunami_lab::setups::CircularDamBreak2d: public Setup {
    *
    * @return the bathymetry data.
    **/
-  t_real getBathymetry(t_real, t_real) const;
+  t_real getBathymetry(t_real i_x, t_real i_y) const;
 };
 
 #endif
