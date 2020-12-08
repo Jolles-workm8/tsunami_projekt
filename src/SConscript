@@ -29,7 +29,7 @@ l_sources = [ 'solvers/Roe.cpp',
               'setups/CircularDamBreak2d.cpp',
               'setups/SupercriticalFlow.cpp',
               'setups/SubcriticalFlow.cpp',
-              'io/Csv.cpp' ]
+              'io/Csv.cpp']
 
 for l_so in l_sources:
   env.sources.append( env.Object( l_so ) )

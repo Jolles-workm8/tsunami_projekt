@@ -85,6 +85,11 @@ VariantDir( variant_dir = 'build/src',
 env.sources = []
 env.tests = []
 
+conf = Configure(env)
+if not conf.CheckLib('netcdf'):
+    Exit('can not find netcdf')
+
+
 Export('env')
 SConscript( 'build/src/SConscript' )
 Import('env')
