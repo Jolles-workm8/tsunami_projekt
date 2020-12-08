@@ -37,6 +37,7 @@ jobs:
           sudo apt-get install scons
           sudo apt-get install valgrind
           sudo apt-get install cppcheck
+          sudo apt-get install libnetcdf-dev
           git submodule init
           git submodule update
 
@@ -52,8 +53,8 @@ jobs:
           ./build/tsunami_lab 25 0
           scons mode=release+san
           ./build/tests
-          ./build/tsunami_lab 500 1
-          ./build/tsunami_lab 500 0
+          ./build/tsunami_lab 100 1
+          ./build/tsunami_lab 100 0
 
       - name: Valgrind
         run: |
@@ -67,5 +68,5 @@ jobs:
         run: |
           scons
           ./build/tests
-          ./build/tsunami_lab 500 1
-          ./build/tsunami_lab 500 0
+          ./build/tsunami_lab 100 1
+          ./build/tsunami_lab 100 0

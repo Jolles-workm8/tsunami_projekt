@@ -52,7 +52,8 @@ env.Append( CXXFLAGS = [ '-std=c++11',
                          '-Wall',
                          '-Wextra',
                          '-Wpedantic',
-                         '-Werror' ] )
+                         '-Werror',
+                         '-lnetcdf' ] )
 
 # set optimization mode
 if 'debug' in env['mode']:

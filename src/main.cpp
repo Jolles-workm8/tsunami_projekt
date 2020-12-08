@@ -29,6 +29,8 @@
  * Entry-point for simulations.
  **/
 
+#include <netcdf.h>
+
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
@@ -39,13 +41,13 @@
 #include "io/Csv.h"
 #include "patches/WavePropagation1d.h"
 #include "patches/WavePropagation2d.h"
+#include "setups/CircularDamBreak2d.h"
 #include "setups/DamBreak1d.h"
 #include "setups/DamBreakNew.h"
 #include "setups/RareRare1d.h"
 #include "setups/ShockShock1d.h"
 #include "setups/SubcriticalFlow.h"
 #include "setups/SupercriticalFlow.h"
-#include "setups/CircularDamBreak2d.h"
 
 int main(int i_argc, char *i_argv[]) {
   // number of cells in x- and y-direction. Default for y-dimension is 1.
@@ -170,10 +172,10 @@ int main(int i_argc, char *i_argv[]) {
       std::ofstream l_file;
       l_file.open(l_path);
 
-      tsunami_lab::io::Csv::write(l_dxy, l_nx, l_ny, l_waveProp->getStride(),
-                                  l_waveProp->getHeight(),
-                                  l_waveProp->getMomentumX(),l_waveProp-> getMomentumY(),
-                                  l_waveProp->getBathymetry(), l_file);
+      tsunami_lab::io::Csv::write(
+          l_dxy, l_nx, l_ny, l_waveProp->getStride(), l_waveProp->getHeight(),
+          l_waveProp->getMomentumX(), l_waveProp->getMomentumY(),
+          l_waveProp->getBathymetry(), l_file);
       l_file.close();
       l_nOut++;
     }
