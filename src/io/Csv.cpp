@@ -16,7 +16,7 @@
  * IO-routines for writing a snapshot as Comma Separated Values (CSV).
  **/
 #include "Csv.h"
-#include <netcdf.h>
+
 
 
 void tsunami_lab::io::Csv::write( t_real               i_dxy,
@@ -58,9 +58,4 @@ void tsunami_lab::io::Csv::write( t_real               i_dxy,
     }
   }
   io_stream << std::flush;
-
-  int ncid = 5;
-  nc_create("abs", NC_CLOBBER, &ncid);
-
-
 }

@@ -38,6 +38,7 @@
 #include <iostream>
 #include <limits>
 
+#include "io/NetCdf.h"
 #include "io/Csv.h"
 #include "patches/WavePropagation1d.h"
 #include "patches/WavePropagation2d.h"
@@ -109,6 +110,9 @@ int main(int i_argc, char *i_argv[]) {
   // construct solver
   tsunami_lab::patches::WavePropagation *l_waveProp;
   l_waveProp = new tsunami_lab::patches::WavePropagation2d(l_nx, l_ny);
+  // construct NetCdf Outpu
+  tsunami_lab::io::NetCdf *l_netcdf;
+  l_netcdf = new tsunami_lab::io::NetCdf(l_nx, l_ny, l_dxy);
 
   // maximum observed height in the setup
   tsunami_lab::t_real l_hMax =
@@ -145,8 +149,7 @@ int main(int i_argc, char *i_argv[]) {
 
   // set up time and print control
   tsunami_lab::t_idx l_timeStep = 0;
-  tsunami_lab::t_idx l_nOut = 0;
-  tsunami_lab::t_real l_endTime = 20;
+  tsunami_lab::t_real l_endTime = 50;
   tsunami_lab::t_real l_simTime = 0;
 
   // initialize the timescaling the momentum is ignored in the first step
@@ -166,18 +169,11 @@ int main(int i_argc, char *i_argv[]) {
       std::cout << "  simulation time / #time steps: " << l_simTime << " / "
                 << l_timeStep << std::endl;
 
-      std::string l_path = "solution_" + std::to_string(l_nOut) + ".csv";
-      std::cout << "  writing wave field to " << l_path << std::endl;
-
-      std::ofstream l_file;
-      l_file.open(l_path);
-
-      tsunami_lab::io::Csv::write(
-          l_dxy, l_nx, l_ny, l_waveProp->getStride(), l_waveProp->getHeight(),
+      l_netcdf->write(
+          l_waveProp->getStride(), l_waveProp->getHeight(),
           l_waveProp->getMomentumX(), l_waveProp->getMomentumY(),
-          l_waveProp->getBathymetry(), l_file);
-      l_file.close();
-      l_nOut++;
+          l_waveProp->getBathymetry(), l_timeStep/25, l_simTime);
+
     }
 
     l_waveProp->setGhostOutflow();
@@ -193,6 +189,7 @@ int main(int i_argc, char *i_argv[]) {
   std::cout << "freeing memory" << std::endl;
   delete l_setup;
   delete l_waveProp;
+  delete l_netcdf;
 
   std::cout << "finished, exiting" << std::endl;
   return EXIT_SUCCESS;
