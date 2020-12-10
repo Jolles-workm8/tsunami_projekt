@@ -1,0 +1,26 @@
+file /home/jolles/Documents/MasterDataScience/Tsunami_Lab/tsunami_projekt/SConstruct,line 88:
+	Configure(confdir = .sconf_temp)
+scons: Configure: Checking for C library netcdf... 
+scons: Configure: ".sconf_temp/conftest_df286a1d2f67e69d030b4eff75ca7e12_0.c" is up to date.
+scons: Configure: The original builder output was:
+  |.sconf_temp/conftest_df286a1d2f67e69d030b4eff75ca7e12_0.c <-
+  |  |
+  |  |
+  |  |
+  |  |int
+  |  |main() {
+  |  |  
+  |  |return 0;
+  |  |}
+  |  |
+  |
+scons: Configure: ".sconf_temp/conftest_df286a1d2f67e69d030b4eff75ca7e12_0.o" is up to date.
+scons: Configure: The original builder output was:
+  |gcc -o .sconf_temp/conftest_df286a1d2f67e69d030b4eff75ca7e12_0.o -c .sconf_temp/conftest_df286a1d2f67e69d030b4eff75ca7e12_0.c
+  |
+scons: Configure: ".sconf_temp/conftest_df286a1d2f67e69d030b4eff75ca7e12_0_14b042259824e52737bf11dc8cb699a6" is up to date.
+scons: Configure: The original builder output was:
+  |gcc -o .sconf_temp/conftest_df286a1d2f67e69d030b4eff75ca7e12_0_14b042259824e52737bf11dc8cb699a6 .sconf_temp/conftest_df286a1d2f67e69d030b4eff75ca7e12_0.o -lnetcdf
+  |
+scons: Configure: (cached) yes
+
