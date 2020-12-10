@@ -112,6 +112,9 @@ tsunami_lab::io::NetCdf::NetCdf(t_idx i_nx,t_idx i_ny, t_real i_dxy){
     ERR(retval);
   if ((retval = nc_put_var_float(ncid, y_varid, &l_posY[0])))
     ERR(retval);
+
+  delete[] l_posX;
+  delete[] l_posY;
 }
 
 tsunami_lab::io::NetCdf::~NetCdf(){
