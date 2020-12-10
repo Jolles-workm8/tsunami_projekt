@@ -17,9 +17,10 @@
  **/
 #include "NetCdf.h"
 
+#define SECOND "s"
 #define METER "m"
+#define METER_PER_SECOND "m/s"
 #define ERR(e) {printf("Error: %s\n", nc_strerror(e));}
-
 
 
 tsunami_lab::io::NetCdf::NetCdf(t_idx i_nx,t_idx i_ny, t_real i_dxy){
@@ -29,7 +30,7 @@ tsunami_lab::io::NetCdf::NetCdf(t_idx i_nx,t_idx i_ny, t_real i_dxy){
 
 
   int x_dim, y_dim, time_dim;
-  int retval;
+  int x_varid, y_varid;
 
   if ((retval = nc_create("solver.nc", NC_CLOBBER, &ncid)))
         ERR(retval);
@@ -41,7 +42,6 @@ tsunami_lab::io::NetCdf::NetCdf(t_idx i_nx,t_idx i_ny, t_real i_dxy){
     ERR(retval);
   if ((retval = nc_def_dim(ncid, "seconds since", NC_UNLIMITED, &time_dim)))
     ERR(retval);
-
 
   // define coordinates
   if ((retval = nc_def_var(ncid, "x", NC_DOUBLE, 1, &x_dim, &x_varid)))
@@ -57,7 +57,7 @@ tsunami_lab::io::NetCdf::NetCdf(t_idx i_nx,t_idx i_ny, t_real i_dxy){
     ERR(retval);
   if ((retval = nc_put_att_text(ncid, y_varid, "units", strlen(METER), METER)))
     ERR(retval);
-  if ((retval = nc_put_att_text(ncid, time_varid, "units", strlen("s"), "s")))
+  if ((retval = nc_put_att_text(ncid, time_varid, "units", strlen(SECOND), SECOND)))
     ERR(retval);
 
   // dims array is used to pass dimension of variables
@@ -66,7 +66,7 @@ tsunami_lab::io::NetCdf::NetCdf(t_idx i_nx,t_idx i_ny, t_real i_dxy){
   dims[1] = x_dim;
   dims[2] = y_dim;
 
-  //define other variables
+  //define other 3 dim variables
   if ((retval = nc_def_var(ncid, "height", NC_DOUBLE, 3, dims, &h_varid)))
     ERR(retval);
   if ((retval = nc_def_var(ncid, "momentum_x", NC_DOUBLE, 3, dims, &hu_varid)))
@@ -74,12 +74,23 @@ tsunami_lab::io::NetCdf::NetCdf(t_idx i_nx,t_idx i_ny, t_real i_dxy){
   if ((retval = nc_def_var(ncid, "momentum_y", NC_DOUBLE, 3, dims, &hv_varid)))
     ERR(retval);
 
-  // assign units attributes to coordinate and time variables
+  //dim array for bathymetry dimensions
+  int l_dimBath[2];
+  l_dimBath[0] = x_dim;
+  l_dimBath[1] = y_dim;
+
+  //define 2 dim bathymetry
+  if ((retval = nc_def_var(ncid, "bathymetry", NC_DOUBLE, 2, l_dimBath, &bath_varid)))
+    ERR(retval);
+
+  // assign units attributes to other variables
   if ((retval = nc_put_att_text(ncid, h_varid, "units", strlen(METER), METER)))
     ERR(retval);
-  if ((retval = nc_put_att_text(ncid, hu_varid, "units", strlen(METER), METER)))
+  if ((retval = nc_put_att_text(ncid, hu_varid, "units", strlen(METER_PER_SECOND), METER_PER_SECOND)))
     ERR(retval);
-  if ((retval = nc_put_att_text(ncid, hv_varid, "units", strlen(METER), METER)))
+  if ((retval = nc_put_att_text(ncid, hv_varid, "units", strlen(METER_PER_SECOND), METER_PER_SECOND)))
+    ERR(retval);
+  if ((retval = nc_put_att_text(ncid, bath_varid, "units", strlen(METER), METER)))
     ERR(retval);
 
   //end define mode
@@ -109,22 +120,37 @@ tsunami_lab::io::NetCdf::~NetCdf(){
    if ((retval = nc_close(ncid)))
       ERR(retval);
 }
+void tsunami_lab::io::NetCdf::writeBathymetry(t_idx i_stride, t_real const * i_b){
+
+  t_real *l_b = new t_real[l_nx*l_ny];
+
+  // iterate over all cells
+  for( t_idx l_iy = 0; l_iy < l_ny; l_iy++ ) {
+    for( t_idx l_ix = 0; l_ix < l_nx; l_ix++ ) {
+      t_idx l_id_from = l_iy * i_stride + l_ix;
+      t_idx l_id_to = l_iy * l_nx + l_ix;
+      l_b[l_id_to]= i_b[l_id_from];
+    }
+  }
+  //write bathymetry data
+  if ((retval = nc_put_var_float(ncid, bath_varid, &l_b[0])))
+    ERR(retval);
+}
 
 void tsunami_lab::io::NetCdf::write(
                                   t_idx  i_stride,
                                   t_real const * i_h,
                                   t_real  const * i_hu,
                                   t_real  const * i_hv,
-                                  t_real const * ,
                                   t_idx i_timeStep,
                                   t_real i_simTime) {
 
 
-
+  //arrays from which data is writen
   t_real *l_h = new t_real[l_nx*l_ny];
   t_real *l_hu = new t_real[l_nx*l_ny];
   t_real *l_hv = new t_real[l_nx*l_ny];
-  int retval;
+
 
   // iterate over all cells
   for( t_idx l_iy = 0; l_iy < l_ny; l_iy++ ) {
@@ -137,30 +163,29 @@ void tsunami_lab::io::NetCdf::write(
     }
   }
 
+
+
   size_t start[3], count[3];
 
-
+  //array count for data to write per time steps
   count[0] = 1;
   count[1] = l_nx;
   count[2] = l_ny;
+  //array start for position displaceent in dimensions
+  start[0] = i_timeStep;
   start[1] = 0;
   start[2] = 0;
 
-  start[0] = i_timeStep;
   //write time since start
   if ((retval = nc_put_vara_float(ncid, time_varid, start, count, &i_simTime)))
     ERR(retval);
 
-
   // write the computed data.
-
   if ((retval = nc_put_vara_float(ncid, h_varid, start, count, &l_h[0])))
     ERR(retval);
   if ((retval = nc_put_vara_float(ncid, hu_varid, start, count, &l_hu[0])))
     ERR(retval);
-
   if ((retval = nc_put_vara_float(ncid, hv_varid, start, count, &l_hv[0])))
     ERR(retval);
   std::cout <<i_simTime<<std::endl;
-
   }

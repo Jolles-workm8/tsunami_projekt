@@ -110,7 +110,7 @@ int main(int i_argc, char *i_argv[]) {
   // construct solver
   tsunami_lab::patches::WavePropagation *l_waveProp;
   l_waveProp = new tsunami_lab::patches::WavePropagation2d(l_nx, l_ny);
-  // construct NetCdf Outpu
+  // construct NetCdf Output
   tsunami_lab::io::NetCdf *l_netcdf;
   l_netcdf = new tsunami_lab::io::NetCdf(l_nx, l_ny, l_dxy);
 
@@ -161,8 +161,11 @@ int main(int i_argc, char *i_argv[]) {
   // derive scaling for a time step
   tsunami_lab::t_real l_scaling = l_dt / l_dxy;
 
-  std::cout << "entering time loop" << std::endl;
 
+  //write bathymetry data
+  l_netcdf->writeBathymetry(l_waveProp->getStride() ,l_waveProp->getBathymetry());
+
+  std::cout << "entering time loop" << std::endl;
   // iterate over time
   while (l_simTime < l_endTime) {
     if (l_timeStep % 25 == 0) {
@@ -172,7 +175,7 @@ int main(int i_argc, char *i_argv[]) {
       l_netcdf->write(
           l_waveProp->getStride(), l_waveProp->getHeight(),
           l_waveProp->getMomentumX(), l_waveProp->getMomentumY(),
-          l_waveProp->getBathymetry(), l_timeStep/25, l_simTime);
+           l_timeStep/25, l_simTime);
 
     }
 

@@ -35,8 +35,11 @@ class tsunami_lab::io::NetCdf {
     t_idx l_nx;
     t_idx l_ny;
 
+    //saves errors
+    int retval;
+
     int ncid;
-    int x_varid, y_varid, h_varid, hu_varid, hv_varid, time_varid;
+    int h_varid, hu_varid, hv_varid, time_varid, bath_varid;
 
   public:
 
@@ -59,9 +62,11 @@ class tsunami_lab::io::NetCdf {
                        t_real       const * i_h,
                        t_real       const * i_hu,
                        t_real       const * i_hv,
-                       t_real       const * i_b,
                        t_idx i_timeStep,
                        t_real i_simTime);
+
+
+    void writeBathymetry(t_idx i_stride, t_real const * i_b);
 };
 
 #endif
