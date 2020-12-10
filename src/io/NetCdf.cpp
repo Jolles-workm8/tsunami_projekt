@@ -135,6 +135,8 @@ void tsunami_lab::io::NetCdf::writeBathymetry(t_idx i_stride, t_real const * i_b
   //write bathymetry data
   if ((retval = nc_put_var_float(ncid, bath_varid, &l_b[0])))
     ERR(retval);
+
+  delete[] l_b;
 }
 
 void tsunami_lab::io::NetCdf::write(
@@ -188,4 +190,8 @@ void tsunami_lab::io::NetCdf::write(
   if ((retval = nc_put_vara_float(ncid, hv_varid, start, count, &l_hv[0])))
     ERR(retval);
   std::cout <<i_simTime<<std::endl;
+
+  delete[] l_h;
+  delete[] l_hu;
+  delete[] l_hv;
   }
