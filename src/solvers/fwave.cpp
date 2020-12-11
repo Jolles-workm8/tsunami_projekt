@@ -81,6 +81,51 @@ void tsunami_lab::solvers::fwave::netUpdates(t_real i_hL, t_real i_hR,
                                              t_real i_bL, t_real i_bR,
                                              t_real o_netUpdateL[2],
                                              t_real o_netUpdateR[2]) {
+
+  //check if left cell is dry
+  if(i_hL <= 0){
+    //check if both cells are dry
+    if(i_hR <= 0){
+      o_netUpdateL[0] = 0;
+      o_netUpdateR[0] = 0;
+      o_netUpdateL[1] = 0;
+      o_netUpdateR[1] = 0;
+      return;
+    }
+    else{
+      i_hL = i_hR;
+      i_huL = -i_huR;
+      i_bL = i_bR;
+
+      netUpdatesWithoutRefBoundary(i_hL, i_hR, i_huL, i_huR, i_bL, i_bR,
+                                  o_netUpdateL, o_netUpdateR);
+      o_netUpdateL[0] = 0;
+      o_netUpdateL[1] = 0;
+    }
+  }
+  //check if right cell is dry
+  else if(i_hR <= 0){
+    i_hR = i_hL;
+    i_huR = -i_huL;
+    i_bR = i_bL;
+
+    netUpdatesWithoutRefBoundary(i_hL, i_hR, i_huL, i_huR, i_bL, i_bR,
+                                o_netUpdateL, o_netUpdateR);
+    o_netUpdateR[0] = 0;
+    o_netUpdateR[1] = 0;
+  }
+
+  // no dry cell
+  netUpdatesWithoutRefBoundary(i_hL, i_hR, i_huL, i_huR, i_bL, i_bR,
+                              o_netUpdateL, o_netUpdateR);
+}
+
+void tsunami_lab::solvers::fwave::netUpdatesWithoutRefBoundary(t_real i_hL,
+                                             t_real i_hR,
+                                             t_real i_huL, t_real i_huR,
+                                             t_real i_bL, t_real i_bR,
+                                             t_real o_netUpdateL[2],
+                                             t_real o_netUpdateR[2]) {
   // compute particle velocities, redundant
   t_real l_uL = i_huL / i_hL;
   t_real l_uR = i_huR / i_hR;

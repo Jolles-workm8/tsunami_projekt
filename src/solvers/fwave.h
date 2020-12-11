@@ -103,6 +103,11 @@ class tsunami_lab::solvers::fwave {
   static void netUpdates(t_real i_hL, t_real i_hR, t_real i_huL, t_real i_huR,
                          t_real i_bL, t_real i_bR, t_real o_netUpdateL[2],
                          t_real o_netUpdateR[2]);
+
+
+  static void netUpdatesWithoutRefBoundary(t_real i_hL, t_real i_hR, t_real i_huL, t_real i_huR,
+                         t_real i_bL, t_real i_bR, t_real o_netUpdateL[2],
+                         t_real o_netUpdateR[2]);
 };
 
 #endif

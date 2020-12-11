@@ -56,6 +56,26 @@ TEST_CASE("Test Eigenvalues lambda", "[lambdas]") {
   REQUIRE(l_waveSpeedR == Approx(9.5731051658991654));
 }
 
+TEST_CASE("Test reflecting boundary conditions", "[reflecting]") {
+  /*
+   * Test case:
+   *  h: 0 | 0
+   *  u:  5 | 3
+   *  b: -10 | -5
+   *
+   */
+   float l_netUpdatesL[2] = {2, 3};
+   float l_netUpdatesR[2] = {0, 0};
+
+   tsunami_lab::solvers::fwave::netUpdates(0, 0, 5, 3, -10, -5, l_netUpdatesL,
+                                           l_netUpdatesR);
+
+   REQUIRE(l_netUpdatesL[0] == Approx(0));
+   REQUIRE(l_netUpdatesL[1] == Approx(0));
+   REQUIRE(l_netUpdatesR[0] == Approx(0));
+   REQUIRE(l_netUpdatesR[1] == Approx(0));
+}
+
 TEST_CASE("Test the derivation of the fwave net-updates.", "[fwaveUpdates]") {
   float l_netUpdatesL[2] = {-5, 3};
   float l_netUpdatesR[2] = {4, 7};
