@@ -3,3 +3,5 @@ build/
 html/
 latex/
 Doxyfile
+config.log
+.sconf_temp/

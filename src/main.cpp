@@ -54,6 +54,8 @@ int main(int i_argc, char *i_argv[]) {
   // number of cells in x- and y-direction. Default for y-dimension is 1.
   tsunami_lab::t_idx l_nx = 0;
   tsunami_lab::t_idx l_ny = 1;
+  tsunami_lab::t_real l_sizeX = 100;
+  tsunami_lab::t_real l_sizeY = 50;
   int solver;
 
   // set cell size
@@ -82,8 +84,10 @@ int main(int i_argc, char *i_argv[]) {
       std::cerr << "invalid number of cells" << std::endl;
       return EXIT_FAILURE;
     }
-    l_ny = l_nx;
-    l_dxy = (tsunami_lab::t_real)100 / l_nx;
+
+    l_dxy = l_sizeX / l_nx;
+    //calculate number of cells in y direction and round
+    l_ny = (tsunami_lab::t_idx)(l_sizeY / l_dxy + 0.5);
 
     solver = atoi(i_argv[2]);
     if (!(solver == 0 || solver == 1)) {
