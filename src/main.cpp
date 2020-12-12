@@ -38,8 +38,8 @@
 #include <iostream>
 #include <limits>
 
-#include "io/NetCdf.h"
 #include "io/Csv.h"
+#include "io/NetCdf.h"
 #include "patches/WavePropagation1d.h"
 #include "patches/WavePropagation2d.h"
 #include "setups/CircularDamBreak2d.h"
@@ -86,7 +86,7 @@ int main(int i_argc, char *i_argv[]) {
     }
 
     l_dxy = l_sizeX / l_nx;
-    //calculate number of cells in y direction and round
+    // calculate number of cells in y direction and round
     l_ny = (tsunami_lab::t_idx)(l_sizeY / l_dxy + 0.5);
 
     solver = atoi(i_argv[2]);
@@ -116,7 +116,7 @@ int main(int i_argc, char *i_argv[]) {
   l_waveProp = new tsunami_lab::patches::WavePropagation2d(l_nx, l_ny);
   // construct NetCdf Output
   tsunami_lab::io::NetCdf *l_netcdf;
-  l_netcdf = new tsunami_lab::io::NetCdf(l_nx, l_ny, l_dxy);
+  l_netcdf = new tsunami_lab::io::NetCdf(l_nx, l_ny, l_dxy, "data.nc");
 
   // maximum observed height in the setup
   tsunami_lab::t_real l_hMax =
@@ -165,9 +165,9 @@ int main(int i_argc, char *i_argv[]) {
   // derive scaling for a time step
   tsunami_lab::t_real l_scaling = l_dt / l_dxy;
 
-
-  //write bathymetry data
-  l_netcdf->writeBathymetry(l_waveProp->getStride() ,l_waveProp->getBathymetry());
+  // write bathymetry data
+  l_netcdf->writeBathymetry(l_waveProp->getStride(),
+                            l_waveProp->getBathymetry());
 
   std::cout << "entering time loop" << std::endl;
   // iterate over time
@@ -176,11 +176,9 @@ int main(int i_argc, char *i_argv[]) {
       std::cout << "  simulation time / #time steps: " << l_simTime << " / "
                 << l_timeStep << std::endl;
 
-      l_netcdf->write(
-          l_waveProp->getStride(), l_waveProp->getHeight(),
-          l_waveProp->getMomentumX(), l_waveProp->getMomentumY(),
-           l_timeStep/25, l_simTime);
-
+      l_netcdf->write(l_waveProp->getStride(), l_waveProp->getHeight(),
+                      l_waveProp->getMomentumX(), l_waveProp->getMomentumY(),
+                      l_timeStep / 25, l_simTime);
     }
 
     l_waveProp->setGhostOutflow();
