@@ -54,23 +54,32 @@ class tsunami_lab::io::NetCdf {
   int w_x_varid;
   int w_y_varid;
 
-  // variables needed for reading
+  // variables needed for reading for the bathymetry file
   int r_bath_ncid;
-  int r_displ_ncid;
   int r_bath_x_varid;
   int r_bath_y_varid;
   int r_bath_z_varid;
   int r_bath_x_dimid;
   int r_bath_y_dimid;
+  size_t r_x_bath_length;
+  size_t r_y_bath_length;
+
+  // ariables needed for reading for the displacement file
+  int r_displ_ncid;
   int r_displ_x_varid;
   int r_displ_y_varid;
   int r_displ_z_varid;
-  size_t r_x_length;
-  size_t r_y_length;
+  int r_displ_x_dimid;
+  int r_displ_y_dimid;
+  size_t r_x_displ_length;
+  size_t r_y_displ_length;
 
-  // variable  rounding so the input matches the data in the dataset
-  t_idx scaling_x;
-  t_idx scaling_y;
+  // variable for rounding the indes so the input matches the data in the
+  // dataset
+  t_idx scaling_bath_x;
+  t_idx scaling_bath_y;
+  t_idx scaling_displ_x;
+  t_idx scaling_displ_y;
 
   // data fields from the file
   int* x_data;

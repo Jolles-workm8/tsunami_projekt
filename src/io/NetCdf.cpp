@@ -136,11 +136,8 @@ tsunami_lab::io::NetCdf::NetCdf(t_idx i_nx, t_idx i_ny, t_real i_dxy,
   ////////////////////////////////////////////
   /// Prepare reading files from a source ///
   //////////////////////////////////////////
-  // we assume that bathymetry and displacement have the same dimension size.
-  // open the file we want to read.
+  // open the files we want to read.
   if ((retval = nc_open(bathymetry_filename, NC_NOWRITE, &r_bath_ncid)))
-    ERR(retval);
-  if ((retval = nc_open(displacement_filename, NC_NOWRITE, &r_displ_ncid)))
     ERR(retval);
 
   // BATHYMETRY FILE //
@@ -155,37 +152,46 @@ tsunami_lab::io::NetCdf::NetCdf(t_idx i_nx, t_idx i_ny, t_real i_dxy,
   if ((retval = nc_inq_dimid(r_bath_ncid, "y", &r_bath_y_dimid))) ERR(retval);
 
   // get the length in x-direction an y-direction
-  if ((retval = nc_inq_dimlen(r_bath_ncid, r_bath_x_dimid, &r_x_length)))
+  if ((retval = nc_inq_dimlen(r_bath_ncid, r_bath_x_dimid, &r_x_bath_length)))
     ERR(retval);
-  if ((retval = nc_inq_dimlen(r_bath_ncid, r_bath_y_dimid, &r_y_length)))
+  if ((retval = nc_inq_dimlen(r_bath_ncid, r_bath_y_dimid, &r_y_bath_length)))
     ERR(retval);
+
+  scaling_bath_x = r_x_bath_length / l_nx;
+  scaling_bath_y = r_y_bath_length / l_ny;
 
   // DISPLACEMENT FILE //
-  // Get the variable id's of the x, y and z coordinates
+  // open the file we want to read
+  if ((retval = nc_open(displacement_filename, NC_NOWRITE, &r_displ_ncid)))
+    ERR(retval);
 
+  // Get the variable id's of the x, y and z coordinates
   if ((retval = nc_inq_varid(r_displ_ncid, "x", &r_displ_x_varid))) ERR(retval);
   if ((retval = nc_inq_varid(r_displ_ncid, "y", &r_displ_y_varid))) ERR(retval);
   if ((retval = nc_inq_varid(r_displ_ncid, "z", &r_displ_z_varid))) ERR(retval);
 
-  // allocate arrays for the data of x, y and the bathymetry;
+  // get dim id of x and y
+  if ((retval = nc_inq_dimid(r_displ_ncid, "x", &r_displ_x_dimid))) ERR(retval);
+  if ((retval = nc_inq_dimid(r_displ_ncid, "y", &r_displ_y_dimid))) ERR(retval);
 
-  x_data = new int[r_x_length];
-  y_data = new int[r_y_length];
-
-  if ((retval = nc_get_var_int(r_bath_ncid, r_bath_x_varid, &x_data[0])))
+  // get the length in x-direction an y-direction
+  if ((retval =
+           nc_inq_dimlen(r_displ_ncid, r_displ_x_dimid, &r_x_displ_length)))
     ERR(retval);
-  if ((retval = nc_get_var_int(r_bath_ncid, r_bath_y_varid, &y_data[0])))
+  if ((retval =
+           nc_inq_dimlen(r_displ_ncid, r_displ_y_dimid, &r_y_displ_length)))
     ERR(retval);
 
-  scaling_x = r_x_length / l_nx;
-  scaling_y = r_y_length / l_ny;
+  scaling_displ_x = r_x_displ_length / l_nx;
+  scaling_displ_y = r_y_displ_length / l_ny;
 }
 
 tsunami_lab::io::NetCdf::~NetCdf() {
   int retval;
   // close the file
   if ((retval = nc_close(ncid))) ERR(retval);
-  if ((retval = nc_close(ncid))) ERR(retval);
+  if ((retval = nc_close(r_displ_ncid))) ERR(retval);
+  if ((retval = nc_close(r_bath_ncid))) ERR(retval);
 
   delete[] x_data;
   delete[] y_data;
@@ -260,8 +266,8 @@ tsunami_lab::t_real tsunami_lab::io::NetCdf::read_bathymetry(t_idx i_x,
                                                              t_idx i_y) {
   float bath_return_value;
   size_t index[2];
-  index[0] = scaling_x * i_x;
-  index[1] = scaling_y * i_y;
+  index[0] = scaling_bath_x * i_x;
+  index[1] = scaling_bath_y * i_y;
   if ((retval = nc_get_var1_float(r_bath_ncid, r_bath_z_varid, index,
                                   &bath_return_value)))
     ERR(retval);
@@ -272,8 +278,8 @@ tsunami_lab::t_real tsunami_lab::io::NetCdf::read_displacement(t_idx i_x,
                                                                t_idx i_y) {
   float displ_return_value;
   size_t index[2];
-  index[0] = scaling_x * i_x;
-  index[1] = scaling_y * i_y;
+  index[0] = scaling_displ_x * i_x;
+  index[1] = scaling_displ_y * i_y;
   if ((retval = nc_get_var1_float(r_displ_ncid, r_displ_z_varid, index,
                                   &displ_return_value)))
     ERR(retval);
