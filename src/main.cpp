@@ -53,9 +53,7 @@
 int main(int i_argc, char *i_argv[]) {
   // number of cells in x- and y-direction. Default for y-dimension is 1.
   tsunami_lab::t_idx l_nx = 0;
-  tsunami_lab::t_idx l_ny = 1;
-  tsunami_lab::t_real l_sizeX = 100;
-  tsunami_lab::t_real l_sizeY = 50;
+  tsunami_lab::t_idx l_ny = 0;
   int solver;
 
   // set cell size
@@ -69,10 +67,9 @@ int main(int i_argc, char *i_argv[]) {
 
   if (i_argc != 3) {
     std::cerr << "invalid number of arguments, usage:" << std::endl;
-    std::cerr << "  ./build/tsunami_lab N_CELLS_X N_CELLS_Y SOLVER"
-              << std::endl;
+    std::cerr << "  ./build/tsunami_lab N_CELLS_X SOLVER" << std::endl;
     std::cerr << "where N_CELLS_X is the number of cells in x-direction and "
-                 "y-direction."
+                 "y-direction is computed automatically."
               << std::endl;
     std::cerr << "where SOLVER is the solver of one iteration. Type 0 for "
                  "roe-solver and 1 for fwave solver."
@@ -84,10 +81,6 @@ int main(int i_argc, char *i_argv[]) {
       std::cerr << "invalid number of cells" << std::endl;
       return EXIT_FAILURE;
     }
-
-    l_dxy = l_sizeX / l_nx;
-    // calculate number of cells in y direction and round
-    l_ny = (tsunami_lab::t_idx)(l_sizeY / l_dxy + 0.5);
 
     solver = atoi(i_argv[2]);
     if (!(solver == 0 || solver == 1)) {
@@ -111,13 +104,18 @@ int main(int i_argc, char *i_argv[]) {
   // construct setup
   tsunami_lab::setups::Setup *l_setup;
   l_setup = new tsunami_lab::setups::CircularDamBreak2d();
+
+  // construct NetCdf
+  tsunami_lab::io::NetCdf *l_netcdf;
+  l_netcdf = new tsunami_lab::io::NetCdf(l_nx, "bathymetry_data.nc",
+                                         "displacement_data.nc");
+
+  l_ny = l_netcdf->get_amount_y();
+  l_dxy = l_netcdf->get_dxy();
+
   // construct solver
   tsunami_lab::patches::WavePropagation *l_waveProp;
   l_waveProp = new tsunami_lab::patches::WavePropagation2d(l_nx, l_ny);
-  // construct NetCdf
-  tsunami_lab::io::NetCdf *l_netcdf;
-  l_netcdf = new tsunami_lab::io::NetCdf(
-      l_nx, l_ny, l_dxy, "bathymetry_data.nc", "displacement_data.nc");
 
   // maximum observed height in the setup
   tsunami_lab::t_real l_hMax =

@@ -53,6 +53,9 @@ class tsunami_lab::io::NetCdf {
   t_idx l_nx;
   t_idx l_ny;
   t_real l_dxy;
+  // size of the input data in m
+  t_real l_size_x;
+  t_real l_size_y;
 
   int w_x_varid;
   int w_y_varid;
@@ -93,7 +96,7 @@ class tsunami_lab::io::NetCdf {
   // variables for reading filename
 
  public:
-  NetCdf(t_idx i_nx, t_idx i_ny, t_real t_dxy, const char* bathymetry_filename,
+  NetCdf(t_idx i_nx, const char* bathymetry_filename,
          const char* displacement_filename);
 
   ~NetCdf();
@@ -122,8 +125,8 @@ class tsunami_lab::io::NetCdf {
   t_real read_bathymetry(t_idx i_x, t_idx i_y);
 
   t_real read_displacement(t_idx i_x, t_idx i_y);
-  t_idx get_amount_y(){return l_ny};
-  t_real get_dxy(){return l_dxy};
+  t_idx get_amount_y() { return l_ny; };
+  t_real get_dxy() { return l_dxy; };
 };
 
 #endif

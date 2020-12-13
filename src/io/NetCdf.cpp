@@ -36,15 +36,102 @@
 #define ERR(e) \
   { printf("Error: %s\n", nc_strerror(e)); }
 
-tsunami_lab::io::NetCdf::NetCdf(t_idx i_nx, t_idx i_ny, t_real i_dxy,
-                                const char *bathymetry_filename,
+tsunami_lab::io::NetCdf::NetCdf(t_idx i_nx, const char *bathymetry_filename,
                                 const char *displacement_filename) {
+  l_nx = i_nx;
+  ////////////////////////////////////////////
+  /// Prepare reading files from a source ///
+  //////////////////////////////////////////
+  // open the files we want to read.
+  if ((retval = nc_open(bathymetry_filename, NC_NOWRITE, &r_bath_ncid)))
+    ERR(retval);
+
+  // BATHYMETRY FILE //
+  // Get the variable id's of the x, y an z coordinates
+
+  if ((retval = nc_inq_varid(r_bath_ncid, "x", &r_bath_x_varid))) ERR(retval);
+  if ((retval = nc_inq_varid(r_bath_ncid, "y", &r_bath_y_varid))) ERR(retval);
+  if ((retval = nc_inq_varid(r_bath_ncid, "z", &r_bath_z_varid))) ERR(retval);
+
+  // get dim id of x and y
+  if ((retval = nc_inq_dimid(r_bath_ncid, "x", &r_bath_x_dimid))) ERR(retval);
+  if ((retval = nc_inq_dimid(r_bath_ncid, "y", &r_bath_y_dimid))) ERR(retval);
+
+  // get the length in x-direction an y-direction
+  if ((retval = nc_inq_dimlen(r_bath_ncid, r_bath_x_dimid, &r_x_bath_length)))
+    ERR(retval);
+  if ((retval = nc_inq_dimlen(r_bath_ncid, r_bath_y_dimid, &r_y_bath_length)))
+    ERR(retval);
+
+  // get the min and max value of the field in x and y direction
+  // compute the sizes of the field
+  float bath_max_return_value;
+  float bath_min_return_value;
+  size_t index_min[1];
+  size_t index_max[1];
+
+  index_min[0] = 0;
+
+  // Compute size_x
+  index_max[0] = r_x_bath_length - 1;
+
+  if ((retval = nc_get_var1_float(r_bath_ncid, r_displ_x_varid, index_max,
+                                  &bath_max_return_value)))
+    ERR(retval);
+  if ((retval = nc_get_var1_float(r_bath_ncid, r_displ_x_varid, index_min,
+                                  &bath_min_return_value)))
+    ERR(retval);
+  l_size_x = bath_max_return_value - bath_min_return_value;
+
+  // Compute size_y
+
+  index_max[0] = r_y_bath_length - 1;
+
+  if ((retval = nc_get_var1_float(r_bath_ncid, r_displ_y_varid, index_max,
+                                  &bath_max_return_value)))
+    ERR(retval);
+  if ((retval = nc_get_var1_float(r_bath_ncid, r_displ_y_varid, index_min,
+                                  &bath_min_return_value)))
+    ERR(retval);
+
+  l_size_y = bath_max_return_value - bath_min_return_value;
+
+  // calculate cellsize
+  l_dxy = l_size_x / l_nx;
+  // calculate number of cells in y direction and round
+  l_ny = (tsunami_lab::t_idx)(l_size_y / l_dxy + 0.5);
+
+  scaling_bath_x = r_x_bath_length / l_nx;
+  scaling_bath_y = r_y_bath_length / l_ny;
+
+  // DISPLACEMENT FILE //
+  // open the file we want to read
+  if ((retval = nc_open(displacement_filename, NC_NOWRITE, &r_displ_ncid)))
+    ERR(retval);
+
+  // Get the variable id's of the x, y and z coordinates
+  if ((retval = nc_inq_varid(r_displ_ncid, "x", &r_displ_x_varid))) ERR(retval);
+  if ((retval = nc_inq_varid(r_displ_ncid, "y", &r_displ_y_varid))) ERR(retval);
+  if ((retval = nc_inq_varid(r_displ_ncid, "z", &r_displ_z_varid))) ERR(retval);
+
+  // get dim id of x and y
+  if ((retval = nc_inq_dimid(r_displ_ncid, "x", &r_displ_x_dimid))) ERR(retval);
+  if ((retval = nc_inq_dimid(r_displ_ncid, "y", &r_displ_y_dimid))) ERR(retval);
+
+  // get the length in x-direction an y-direction
+  if ((retval =
+           nc_inq_dimlen(r_displ_ncid, r_displ_x_dimid, &r_x_displ_length)))
+    ERR(retval);
+  if ((retval =
+           nc_inq_dimlen(r_displ_ncid, r_displ_y_dimid, &r_y_displ_length)))
+    ERR(retval);
+
+  scaling_displ_x = r_x_displ_length / l_nx;
+  scaling_displ_y = r_y_displ_length / l_ny;
+
   /////////////////////////////////////////
   /// Prepare writing data into a file ///
   ///////////////////////////////////////
-
-  l_nx = i_nx;
-  l_ny = i_ny;
 
   int x_dim, y_dim, time_dim;
 
@@ -117,12 +204,12 @@ tsunami_lab::io::NetCdf::NetCdf(t_idx i_nx, t_idx i_ny, t_real i_dxy,
   if ((retval = nc_enddef(ncid))) ERR(retval);
 
   // derive coordinates of cell center
-  t_real *l_posX = new t_real[i_nx];
-  t_real *l_posY = new t_real[i_ny];
-  for (t_idx l_iy = 0; l_iy < i_ny; l_iy++) {
-    for (t_idx l_ix = 0; l_ix < i_nx; l_ix++) {
-      l_posX[l_ix] = (l_ix + 0.5) * i_dxy;
-      l_posY[l_iy] = (l_iy + 0.5) * i_dxy;
+  t_real *l_posX = new t_real[l_nx];
+  t_real *l_posY = new t_real[l_ny];
+  for (t_idx l_iy = 0; l_iy < l_ny; l_iy++) {
+    for (t_idx l_ix = 0; l_ix < l_nx; l_ix++) {
+      l_posX[l_ix] = (l_ix + 0.5) * l_dxy;
+      l_posY[l_iy] = (l_iy + 0.5) * l_dxy;
     }
   }
 
@@ -132,58 +219,6 @@ tsunami_lab::io::NetCdf::NetCdf(t_idx i_nx, t_idx i_ny, t_real i_dxy,
 
   delete[] l_posX;
   delete[] l_posY;
-
-  ////////////////////////////////////////////
-  /// Prepare reading files from a source ///
-  //////////////////////////////////////////
-  // open the files we want to read.
-  if ((retval = nc_open(bathymetry_filename, NC_NOWRITE, &r_bath_ncid)))
-    ERR(retval);
-
-  // BATHYMETRY FILE //
-  // Get the variable id's of the x, y an z coordinates
-
-  if ((retval = nc_inq_varid(r_bath_ncid, "x", &r_bath_x_varid))) ERR(retval);
-  if ((retval = nc_inq_varid(r_bath_ncid, "y", &r_bath_y_varid))) ERR(retval);
-  if ((retval = nc_inq_varid(r_bath_ncid, "z", &r_bath_z_varid))) ERR(retval);
-
-  // get dim id of x and y
-  if ((retval = nc_inq_dimid(r_bath_ncid, "x", &r_bath_x_dimid))) ERR(retval);
-  if ((retval = nc_inq_dimid(r_bath_ncid, "y", &r_bath_y_dimid))) ERR(retval);
-
-  // get the length in x-direction an y-direction
-  if ((retval = nc_inq_dimlen(r_bath_ncid, r_bath_x_dimid, &r_x_bath_length)))
-    ERR(retval);
-  if ((retval = nc_inq_dimlen(r_bath_ncid, r_bath_y_dimid, &r_y_bath_length)))
-    ERR(retval);
-
-  scaling_bath_x = r_x_bath_length / l_nx;
-  scaling_bath_y = r_y_bath_length / l_ny;
-
-  // DISPLACEMENT FILE //
-  // open the file we want to read
-  if ((retval = nc_open(displacement_filename, NC_NOWRITE, &r_displ_ncid)))
-    ERR(retval);
-
-  // Get the variable id's of the x, y and z coordinates
-  if ((retval = nc_inq_varid(r_displ_ncid, "x", &r_displ_x_varid))) ERR(retval);
-  if ((retval = nc_inq_varid(r_displ_ncid, "y", &r_displ_y_varid))) ERR(retval);
-  if ((retval = nc_inq_varid(r_displ_ncid, "z", &r_displ_z_varid))) ERR(retval);
-
-  // get dim id of x and y
-  if ((retval = nc_inq_dimid(r_displ_ncid, "x", &r_displ_x_dimid))) ERR(retval);
-  if ((retval = nc_inq_dimid(r_displ_ncid, "y", &r_displ_y_dimid))) ERR(retval);
-
-  // get the length in x-direction an y-direction
-  if ((retval =
-           nc_inq_dimlen(r_displ_ncid, r_displ_x_dimid, &r_x_displ_length)))
-    ERR(retval);
-  if ((retval =
-           nc_inq_dimlen(r_displ_ncid, r_displ_y_dimid, &r_y_displ_length)))
-    ERR(retval);
-
-  scaling_displ_x = r_x_displ_length / l_nx;
-  scaling_displ_y = r_y_displ_length / l_ny;
 }
 
 tsunami_lab::io::NetCdf::~NetCdf() {
@@ -192,9 +227,6 @@ tsunami_lab::io::NetCdf::~NetCdf() {
   if ((retval = nc_close(ncid))) ERR(retval);
   if ((retval = nc_close(r_displ_ncid))) ERR(retval);
   if ((retval = nc_close(r_bath_ncid))) ERR(retval);
-
-  delete[] x_data;
-  delete[] y_data;
 }
 void tsunami_lab::io::NetCdf::writeBathymetry(t_idx i_stride,
                                               t_real const *i_b) {
@@ -285,5 +317,3 @@ tsunami_lab::t_real tsunami_lab::io::NetCdf::read_displacement(t_idx i_x,
     ERR(retval);
   return (t_real)displ_return_value;
 }
-
-read_gridsize() {}
