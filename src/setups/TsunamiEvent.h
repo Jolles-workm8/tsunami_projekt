@@ -28,3 +28,59 @@
  * @section DESCRIPTION
  * one-dimensional shock shock problem
  **/
+#ifndef TSUNAMI_EVENT_H_
+#define TSUNAMI_EVENT_H_
+
+#include "../io/NetCdf.h"
+#include "Setup.h"
+
+namespace tsunami_lab {
+namespace setups {
+class ArtificialTsunami;
+}
+}  // namespace tsunami_lab
+
+/**
+ * 1d Rare Rare problem
+ **/
+
+class tsunami_lab::setups::ArtificialTsunami : public Setup {
+ private:
+ public:
+  /**
+   *Constructor
+   **/
+  ArtificialTsunami();
+
+  /**
+   * Gets the water height at a given point.
+   *
+   * @param i_x x-coordinate of the queried point.
+   * @param i_y y-coordinate of the queried point.
+   * @return height at the given point.
+   **/
+  t_real getHeight(t_real i_x, t_real i_y) const;
+  /**
+   * Gets the momentum in x-direction.
+   *
+   * @return momentum in x-direction.
+   **/
+  t_real getMomentumX(t_real, t_real) const;
+
+  /**
+   * Gets the momentum in y-direction.
+   *
+   * @return momentum in y-direction.
+   **/
+  t_real getMomentumY(t_real, t_real) const;
+  /**
+   * Gets the bathymetry data.
+   *
+   * @param i_x x-coordinate of the queried point.
+   * @param i_y y-coordinate of the queried point.
+   *
+   * @return the bathymetry data at the given point.
+   **/
+  t_real getBathymetry(t_real i_x, t_real i_y) const;
+};
+#endif

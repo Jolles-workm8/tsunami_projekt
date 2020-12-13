@@ -35,6 +35,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <cmath>
 #include <cstring>
 #include <iostream>
 #include <string>
@@ -76,10 +77,10 @@ class tsunami_lab::io::NetCdf {
 
   // variable for rounding the indes so the input matches the data in the
   // dataset
-  t_idx scaling_bath_x;
-  t_idx scaling_bath_y;
-  t_idx scaling_displ_x;
-  t_idx scaling_displ_y;
+  float scaling_bath_x;
+  float scaling_bath_y;
+  float scaling_displ_x;
+  float scaling_displ_y;
 
   // data fields from the file
   int* x_data;

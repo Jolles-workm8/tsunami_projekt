@@ -1,8 +1,8 @@
 /**
- * @author Alexander Breuer (alex.breuer AT uni-jena.de)
+ * @author Julius Isken, Max Engel
  *
  * @section LICENSE
- * Copyright 2020, Friedrich Schiller University Jena
+ * Copyright 2020, Julius Isken, Max Engel
  *
  * Redistribution and use in source and binary forms, with or without
  *modification, are permitted provided that the following conditions are met:
@@ -26,7 +26,7 @@
  *OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * @section DESCRIPTION
- * IO-routines for writing a snapshot as Comma Separated Values (CSV).
+ * one-dimensional shock shock problem
  **/
 #include "NetCdf.h"
 
@@ -188,7 +188,7 @@ tsunami_lab::io::NetCdf::NetCdf(t_idx i_nx, t_idx i_ny, t_real i_dxy,
 
 tsunami_lab::io::NetCdf::~NetCdf() {
   int retval;
-  // close the file
+  // close the files
   if ((retval = nc_close(ncid))) ERR(retval);
   if ((retval = nc_close(r_displ_ncid))) ERR(retval);
   if ((retval = nc_close(r_bath_ncid))) ERR(retval);
@@ -266,8 +266,8 @@ tsunami_lab::t_real tsunami_lab::io::NetCdf::read_bathymetry(t_idx i_x,
                                                              t_idx i_y) {
   float bath_return_value;
   size_t index[2];
-  index[0] = scaling_bath_x * i_x;
-  index[1] = scaling_bath_y * i_y;
+  index[0] = (size_t)(scaling_bath_x * i_x + scaling_bath_x * 0.5);
+  index[1] = (size_t)(scaling_bath_y * i_y + scaling_bath_y * 0.5);
   if ((retval = nc_get_var1_float(r_bath_ncid, r_bath_z_varid, index,
                                   &bath_return_value)))
     ERR(retval);
@@ -278,10 +278,12 @@ tsunami_lab::t_real tsunami_lab::io::NetCdf::read_displacement(t_idx i_x,
                                                                t_idx i_y) {
   float displ_return_value;
   size_t index[2];
-  index[0] = scaling_displ_x * i_x;
-  index[1] = scaling_displ_y * i_y;
+  index[0] = (size_t)(scaling_bath_x * i_x + scaling_bath_x * 0.5);
+  index[1] = (size_t)(scaling_bath_y * i_y + scaling_bath_y * 0.5);
   if ((retval = nc_get_var1_float(r_displ_ncid, r_displ_z_varid, index,
                                   &displ_return_value)))
     ERR(retval);
   return (t_real)displ_return_value;
 }
+
+read_gridsize() {}
