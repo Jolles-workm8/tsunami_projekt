@@ -15,6 +15,8 @@
 # @section DESCRIPTION
 # Continuous integration using GitHub Actions.
 ##
+
+#TODO: mv datasets into build after compiling so the execution doesn't fail anymore
 name: Tsunami Lab
 
 on:
