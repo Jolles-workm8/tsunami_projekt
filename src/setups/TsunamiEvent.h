@@ -36,7 +36,7 @@
 
 namespace tsunami_lab {
 namespace setups {
-class ArtificialTsunami;
+class TsunamiEvent;
 }
 }  // namespace tsunami_lab
 
@@ -44,13 +44,13 @@ class ArtificialTsunami;
  * 1d Rare Rare problem
  **/
 
-class tsunami_lab::setups::ArtificialTsunami : public Setup {
+class tsunami_lab::setups::TsunamiEvent : public Setup {
  private:
  public:
   /**
    *Constructor
    **/
-  ArtificialTsunami();
+  TsunamiEvent();
 
   /**
    * Gets the water height at a given point.
