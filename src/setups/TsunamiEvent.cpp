@@ -32,32 +32,34 @@
 
 #include <cmath>
 
-tsunami_lab::setups::ArtificialTsunami::ArtificialTsunami() {}
-
-tsunami_lab::t_real tsunami_lab::setups::ArtificialTsunami::getHeight(
-    t_real, t_real) const {
-  return 100;
+tsunami_lab::setups::TsunamiEvent::TsunamiEvent(t_idx i_nx) {
+  l_nx = i_nx;
+  l_netcdf = new tsunami_lab::io::NetCdf(l_nx, "bathymetry_data.nc",
+                                         "displacement_data.nc");
 }
 
-tsunami_lab::t_real tsunami_lab::setups::ArtificialTsunami::getMomentumX(
-    t_real, t_real) const {
-  return 0;
-}
-
-tsunami_lab::t_real tsunami_lab::setups::ArtificialTsunami::getMomentumY(
-    t_real, t_real) const {
-  return 0;
-}
-
-tsunami_lab::t_real tsunami_lab::setups::ArtificialTsunami::getBathymetry(
+tsunami_lab::t_real tsunami_lab::setups::TsunamiEvent::getHeight(
     t_real i_x, t_real i_y) const {
-  i_x -= 5000;
-  i_y -= 5000;
-  float pi = 3.14159;
-  if ((-500 <= i_x) && (i_x <= 500) && (-500 <= i_y) && (i_y <= 500)) {
-    return 5 * (std::sin(((float)0.002 * i_x + 1) * pi) *
-                (-1 * (0.002 * i_y) * (0.002 * i_y) + 1));
-  } else {
-    return 0;
-  }
+  t_real height;
+  height = l_netcdf->read_bathymetry(i_x, i_y);
+  height *= -1;
+  return height;
+}
+
+tsunami_lab::t_real tsunami_lab::setups::TsunamiEvent::getMomentumX(
+    t_real, t_real) const {
+  return 0;
+}
+
+tsunami_lab::t_real tsunami_lab::setups::TsunamiEvent::getMomentumY(
+    t_real, t_real) const {
+  return 0;
+}
+
+tsunami_lab::t_real tsunami_lab::setups::TsunamiEvent::getBathymetry(
+    t_real i_x, t_real i_y) const {
+  t_real bath;
+  bath = l_netcdf->read_bathymetry(i_x, i_y);
+  bath += l_netcdf->read_displacement(i_x, i_y);
+  return bath;
 }

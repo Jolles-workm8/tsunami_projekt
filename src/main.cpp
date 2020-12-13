@@ -49,6 +49,7 @@
 #include "setups/ShockShock1d.h"
 #include "setups/SubcriticalFlow.h"
 #include "setups/SupercriticalFlow.h"
+#include "setups/TsunamiEvent.h"
 
 int main(int i_argc, char *i_argv[]) {
   // number of cells in x- and y-direction. Default for y-dimension is 1.
@@ -101,17 +102,18 @@ int main(int i_argc, char *i_argv[]) {
   if (solver == 1) {
     std::cout << "  using fwave-solver" << std::endl;
   }
-  // construct setup
-  tsunami_lab::setups::Setup *l_setup;
-  l_setup = new tsunami_lab::setups::CircularDamBreak2d();
 
-  // construct NetCdf
+  // construct NetCdf-reader
   tsunami_lab::io::NetCdf *l_netcdf;
   l_netcdf = new tsunami_lab::io::NetCdf(l_nx, "bathymetry_data.nc",
                                          "displacement_data.nc");
 
   l_ny = l_netcdf->get_amount_y();
   l_dxy = l_netcdf->get_dxy();
+
+  // construct setup
+  tsunami_lab::setups::Setup *l_setup;
+  l_setup = new tsunami_lab::setups::TsunamiEvent(l_nx);
 
   // construct solver
   tsunami_lab::patches::WavePropagation *l_waveProp;

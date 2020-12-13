@@ -41,16 +41,19 @@ class TsunamiEvent;
 }  // namespace tsunami_lab
 
 /**
- * 1d Rare Rare problem
+ * Tsunami Event
  **/
 
 class tsunami_lab::setups::TsunamiEvent : public Setup {
  private:
+  tsunami_lab::io::NetCdf *l_netcdf;
+  t_idx l_nx = 0;
+
  public:
   /**
    *Constructor
    **/
-  TsunamiEvent();
+  TsunamiEvent(t_idx i_nx);
 
   /**
    * Gets the water height at a given point.

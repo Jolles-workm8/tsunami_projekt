@@ -30,6 +30,7 @@ l_sources = [ 'solvers/Roe.cpp',
               'setups/CircularDamBreak2d.cpp',
               'setups/SupercriticalFlow.cpp',
               'setups/SubcriticalFlow.cpp',
+              'setups/TsunamiEvent.cpp',
               'io/Csv.cpp',
               'io/NetCdf.cpp']
 
