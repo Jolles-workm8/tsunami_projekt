@@ -55,28 +55,38 @@ class tsunami_lab::io::NetCdf {
   int w_y_varid;
 
   // variables needed for reading
-  int r_x_varid;
-  int r_y_varid;
+  int r_bath_ncid;
+  int r_displ_ncid;
+  int r_bath_x_varid;
+  int r_bath_y_varid;
+  int r_bath_z_varid;
+  int r_bath_x_dimid;
+  int r_bath_y_dimid;
+  int r_displ_x_varid;
+  int r_displ_y_varid;
+  int r_displ_z_varid;
   size_t r_x_length;
   size_t r_y_length;
-  int r_x_dimid;
-  int r_y_dimid;
+
+  // variable  rounding so the input matches the data in the dataset
+  t_idx scaling_x;
+  t_idx scaling_y;
 
   // data fields from the file
-  t_real* x_data;
-  t_real* y_data;
+  int* x_data;
+  int* y_data;
 
   // saves errors
   int retval;
 
   int ncid;
-  int r_ncid;
   int h_varid, hu_varid, hv_varid, time_varid, bath_varid;
 
   // variables for reading filename
 
  public:
-  NetCdf(t_idx i_nx, t_idx i_ny, t_real t_dxy, const char* filename);
+  NetCdf(t_idx i_nx, t_idx i_ny, t_real t_dxy, const char* bathymetry_filename,
+         const char* displacement_filename);
 
   ~NetCdf();
 
@@ -101,9 +111,9 @@ class tsunami_lab::io::NetCdf {
 
   void writeBathymetry(t_idx i_stride, t_real const* i_b);
 
-  // void read_height(t_idx i_idx, t_idx i_y, t_real o_height);
+  t_real read_bathymetry(t_idx i_x, t_idx i_y);
 
-  // void read_bathymetry(t_idx i_x, t_idx i_y);
+  t_real read_displacement(t_idx i_x, t_idx i_y);
 };
 
 #endif

@@ -37,10 +37,11 @@
   { printf("Error: %s\n", nc_strerror(e)); }
 
 tsunami_lab::io::NetCdf::NetCdf(t_idx i_nx, t_idx i_ny, t_real i_dxy,
-                                const char *filename) {
-  ////////////////////////////////
-  /// Writing data into a file///
-  //////////////////////////////
+                                const char *bathymetry_filename,
+                                const char *displacement_filename) {
+  /////////////////////////////////////////
+  /// Prepare writing data into a file ///
+  ///////////////////////////////////////
 
   l_nx = i_nx;
   l_ny = i_ny;
@@ -132,29 +133,52 @@ tsunami_lab::io::NetCdf::NetCdf(t_idx i_nx, t_idx i_ny, t_real i_dxy,
   delete[] l_posX;
   delete[] l_posY;
 
-  /////////////////////////////////////
-  /// Reading files from a sources////
-  ///////////////////////////////////
-
+  ////////////////////////////////////////////
+  /// Prepare reading files from a source ///
+  //////////////////////////////////////////
+  // we assume that bathymetry and displacement have the same dimension size.
   // open the file we want to read.
-  if ((retval = nc_open(filename, NC_NOWRITE, &r_ncid))) ERR(retval);
+  if ((retval = nc_open(bathymetry_filename, NC_NOWRITE, &r_bath_ncid)))
+    ERR(retval);
+  if ((retval = nc_open(displacement_filename, NC_NOWRITE, &r_displ_ncid)))
+    ERR(retval);
 
-  /* Get the varids of the x and y coordinate
-   * variables. */
-  if ((retval = nc_inq_varid(r_ncid, "x", &r_x_varid))) ERR(retval);
-  if ((retval = nc_inq_varid(r_ncid, "y", &r_y_varid))) ERR(retval);
+  // BATHYMETRY FILE //
+  // Get the variable id's of the x, y an z coordinates
+
+  if ((retval = nc_inq_varid(r_bath_ncid, "x", &r_bath_x_varid))) ERR(retval);
+  if ((retval = nc_inq_varid(r_bath_ncid, "y", &r_bath_y_varid))) ERR(retval);
+  if ((retval = nc_inq_varid(r_bath_ncid, "z", &r_bath_z_varid))) ERR(retval);
 
   // get dim id of x and y
-  if ((retval = nc_inq_dimid(r_ncid, "x", &r_x_dimid))) ERR(retval);
-  if ((retval = nc_inq_dimid(r_ncid, "y", &r_y_dimid))) ERR(retval);
+  if ((retval = nc_inq_dimid(r_bath_ncid, "x", &r_bath_x_dimid))) ERR(retval);
+  if ((retval = nc_inq_dimid(r_bath_ncid, "y", &r_bath_y_dimid))) ERR(retval);
 
   // get the length in x-direction an y-direction
-  if ((retval = nc_inq_dimlen(r_ncid, r_x_dimid, &r_x_length))) ERR(retval);
-  if ((retval = nc_inq_dimlen(r_ncid, r_y_dimid, &r_y_length))) ERR(retval);
-  // store the data of x in an array;
+  if ((retval = nc_inq_dimlen(r_bath_ncid, r_bath_x_dimid, &r_x_length)))
+    ERR(retval);
+  if ((retval = nc_inq_dimlen(r_bath_ncid, r_bath_y_dimid, &r_y_length)))
+    ERR(retval);
 
-  x_data = new t_real[r_x_length];
-  y_data = new t_real[r_y_length];
+  // DISPLACEMENT FILE //
+  // Get the variable id's of the x, y and z coordinates
+
+  if ((retval = nc_inq_varid(r_displ_ncid, "x", &r_displ_x_varid))) ERR(retval);
+  if ((retval = nc_inq_varid(r_displ_ncid, "y", &r_displ_y_varid))) ERR(retval);
+  if ((retval = nc_inq_varid(r_displ_ncid, "z", &r_displ_z_varid))) ERR(retval);
+
+  // allocate arrays for the data of x, y and the bathymetry;
+
+  x_data = new int[r_x_length];
+  y_data = new int[r_y_length];
+
+  if ((retval = nc_get_var_int(r_bath_ncid, r_bath_x_varid, &x_data[0])))
+    ERR(retval);
+  if ((retval = nc_get_var_int(r_bath_ncid, r_bath_y_varid, &y_data[0])))
+    ERR(retval);
+
+  scaling_x = r_x_length / l_nx;
+  scaling_y = r_y_length / l_ny;
 }
 
 tsunami_lab::io::NetCdf::~NetCdf() {
@@ -232,8 +256,26 @@ void tsunami_lab::io::NetCdf::write(t_idx i_stride, t_real const *i_h,
   delete[] l_hv;
 }
 
-// void tsunami_lab::io::NetCdf::read_height(t_idx i_x, t_idx i_y,
-//                                          t_real o_height) {}
+tsunami_lab::t_real tsunami_lab::io::NetCdf::read_bathymetry(t_idx i_x,
+                                                             t_idx i_y) {
+  float bath_return_value;
+  size_t index[2];
+  index[0] = scaling_x * i_x;
+  index[1] = scaling_y * i_y;
+  if ((retval = nc_get_var1_float(r_bath_ncid, r_bath_z_varid, index,
+                                  &bath_return_value)))
+    ERR(retval);
+  return (t_real)bath_return_value;
+}
 
-// void tsunami_lab::io::NetCdf::read_bathymetry(t_idx i_x, t_idx i_y) {}
-//
+tsunami_lab::t_real tsunami_lab::io::NetCdf::read_displacement(t_idx i_x,
+                                                               t_idx i_y) {
+  float displ_return_value;
+  size_t index[2];
+  index[0] = scaling_x * i_x;
+  index[1] = scaling_y * i_y;
+  if ((retval = nc_get_var1_float(r_displ_ncid, r_displ_z_varid, index,
+                                  &displ_return_value)))
+    ERR(retval);
+  return (t_real)displ_return_value;
+}

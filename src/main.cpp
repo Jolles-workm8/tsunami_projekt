@@ -116,7 +116,8 @@ int main(int i_argc, char *i_argv[]) {
   l_waveProp = new tsunami_lab::patches::WavePropagation2d(l_nx, l_ny);
   // construct NetCdf Output
   tsunami_lab::io::NetCdf *l_netcdf;
-  l_netcdf = new tsunami_lab::io::NetCdf(l_nx, l_ny, l_dxy, "data.nc");
+  l_netcdf = new tsunami_lab::io::NetCdf(
+      l_nx, l_ny, l_dxy, "bathymetry_data.nc", "displacement_data.nc");
 
   // maximum observed height in the setup
   tsunami_lab::t_real l_hMax =
