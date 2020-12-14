@@ -30,6 +30,7 @@
  **/
 #include "TsunamiEvent.h"
 
+#include <algorithm>
 #include <cmath>
 
 // TODO: split netdcf class into init, read and write, so we avoid redundant
@@ -42,10 +43,12 @@ tsunami_lab::setups::TsunamiEvent::TsunamiEvent(t_idx i_nx) {
 
 tsunami_lab::t_real tsunami_lab::setups::TsunamiEvent::getHeight(
     t_real i_x, t_real i_y) const {
-  t_real height;
-  height = l_netcdf->read_bathymetry(i_x, i_y);
-  height *= -1;
-  return height;
+  t_real const b_in = l_netcdf->read_bathymetry(i_x, i_y);
+  if (b_in < 0) {
+    return std::max(b_in, lambda);
+  } else {
+    return 0;
+  }
 }
 
 tsunami_lab::t_real tsunami_lab::setups::TsunamiEvent::getMomentumX(
@@ -60,8 +63,12 @@ tsunami_lab::t_real tsunami_lab::setups::TsunamiEvent::getMomentumY(
 
 tsunami_lab::t_real tsunami_lab::setups::TsunamiEvent::getBathymetry(
     t_real i_x, t_real i_y) const {
-  t_real bath;
-  bath = l_netcdf->read_bathymetry(i_x, i_y);
-  bath += l_netcdf->read_displacement(i_x, i_y);
-  return bath;
+  t_real const b_in = l_netcdf->read_bathymetry(i_x, i_y);
+  t_real const d_in = l_netcdf->read_displacement(i_x, i_y);
+
+  if (b_in < 0) {
+    return std::min(b_in, -lambda) + d_in;
+  } else {
+    return std::max(b_in, lambda) + d_in;
+  }
 }
