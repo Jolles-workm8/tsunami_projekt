@@ -69,8 +69,16 @@ class tsunami_lab::io::NetCdf {
   int r_bath_y_dimid;
   size_t r_x_bath_length;
   size_t r_y_bath_length;
+  int l_bath_cellsize;
 
-  // ariables needed for reading for the displacement file
+  //variables for min and max in dimension x and y of bathymetry file
+  float l_bath_max_value_x;
+  float l_bath_min_value_x;
+  float l_bath_max_value_y;
+  float l_bath_min_value_y;
+
+
+  // variables needed for reading for the displacement file
   int r_displ_ncid;
   int r_displ_x_varid;
   int r_displ_y_varid;
@@ -79,6 +87,14 @@ class tsunami_lab::io::NetCdf {
   int r_displ_y_dimid;
   size_t r_x_displ_length;
   size_t r_y_displ_length;
+  int l_displ_cellsize;
+
+
+  //variables for min and max in dimension x and y of bathymetry file
+  float l_displ_max_value_x;
+  float l_displ_min_value_x;
+  float l_displ_max_value_y;
+  float l_displ_min_value_y;
 
   // variable for rounding the indes so the input matches the data in the
   // dataset
@@ -122,11 +138,51 @@ class tsunami_lab::io::NetCdf {
 
   void writeBathymetry(t_idx i_stride, t_real const* i_b);
 
+  /**
+  * read the next neighbour bathymetry cell of the  simulation cell x y
+  **/
   t_real read_bathymetry(t_idx i_x, t_idx i_y);
 
+  /**
+  * read the next neighbour displacement cell of the  simulation cell x y
+  * if the cell is outside of displacement data return 0
+  **/
   t_real read_displacement(t_idx i_x, t_idx i_y);
+
+  /**
+  * returns the number of cells in y direction of the simulation
+  **/
   t_idx get_amount_y() { return l_ny; };
+
+  /**
+  *returns the size of a cell in the simulation
+  **/
   t_real get_dxy() { return l_dxy; };
+
+  /**
+  * updates the maximum and minimum of bathymetry in x and y direction
+  **/
+  void update_max_min_bath();
+
+  /**
+  * updates the maximum and minimum of displacement in x and y direction
+  **/
+  void update_max_min_displ();
+
+  /**
+  * update the cellsize of bathymetry
+  **/
+  void update_bath_cellsize();
+
+  /**
+  * update the cellsize of displacement
+  **/
+  void update_displ_cellsize();
+  /**
+  * gets the real Position of a cell
+  *
+  **/
+  void getBathPos(t_idx i_x, t_idx i_y, t_real &o_pos_x, t_real &o_pos_y);
 };
 
 #endif

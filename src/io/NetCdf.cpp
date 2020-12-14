@@ -39,6 +39,7 @@
 tsunami_lab::io::NetCdf::NetCdf(t_idx i_nx, const char *bathymetry_filename,
                                 const char *displacement_filename) {
   l_nx = i_nx;
+
   ////////////////////////////////////////////
   /// Prepare reading files from a source ///
   //////////////////////////////////////////
@@ -63,38 +64,16 @@ tsunami_lab::io::NetCdf::NetCdf(t_idx i_nx, const char *bathymetry_filename,
   if ((retval = nc_inq_dimlen(r_bath_ncid, r_bath_y_dimid, &r_y_bath_length)))
     ERR(retval);
 
-  // get the min and max value of the field in x and y direction
-  // compute the sizes of the field
-  float bath_max_return_value;
-  float bath_min_return_value;
-  size_t index_min[1];
-  size_t index_max[1];
+  // update the min and max value of the field in x and y direction
+  update_max_min_bath();
+  update_bath_cellsize();
 
-  index_min[0] = 0;
 
   // Compute size_x
-  index_max[0] = r_x_bath_length - 1;
-
-  if ((retval = nc_get_var1_float(r_bath_ncid, r_displ_x_varid, index_max,
-                                  &bath_max_return_value)))
-    ERR(retval);
-  if ((retval = nc_get_var1_float(r_bath_ncid, r_displ_x_varid, index_min,
-                                  &bath_min_return_value)))
-    ERR(retval);
-  l_size_x = bath_max_return_value - bath_min_return_value;
+  l_size_x = l_bath_max_value_x + l_bath_cellsize - l_bath_min_value_x;
 
   // Compute size_y
-
-  index_max[0] = r_y_bath_length - 1;
-
-  if ((retval = nc_get_var1_float(r_bath_ncid, r_displ_y_varid, index_max,
-                                  &bath_max_return_value)))
-    ERR(retval);
-  if ((retval = nc_get_var1_float(r_bath_ncid, r_displ_y_varid, index_min,
-                                  &bath_min_return_value)))
-    ERR(retval);
-
-  l_size_y = bath_max_return_value - bath_min_return_value;
+  l_size_y = l_bath_max_value_y + l_bath_cellsize - l_bath_min_value_y;
 
   // calculate cellsize
   l_dxy = l_size_x / l_nx;
@@ -126,8 +105,11 @@ tsunami_lab::io::NetCdf::NetCdf(t_idx i_nx, const char *bathymetry_filename,
            nc_inq_dimlen(r_displ_ncid, r_displ_y_dimid, &r_y_displ_length)))
     ERR(retval);
 
-  scaling_displ_x = r_x_displ_length / l_nx;
-  scaling_displ_y = r_y_displ_length / l_ny;
+
+  // update the min and max value of the field in x and y direction
+  update_max_min_displ();
+  update_displ_cellsize();
+
 
   /////////////////////////////////////////
   /// Prepare writing data into a file ///
@@ -228,6 +210,8 @@ tsunami_lab::io::NetCdf::~NetCdf() {
   if ((retval = nc_close(r_displ_ncid))) ERR(retval);
   if ((retval = nc_close(r_bath_ncid))) ERR(retval);
 }
+
+
 void tsunami_lab::io::NetCdf::writeBathymetry(t_idx i_stride,
                                               t_real const *i_b) {
   t_real *l_b = new t_real[l_nx * l_ny];
@@ -310,10 +294,117 @@ tsunami_lab::t_real tsunami_lab::io::NetCdf::read_displacement(t_idx i_x,
                                                                t_idx i_y) {
   float displ_return_value;
   size_t index[2];
-  index[0] = (size_t)(scaling_bath_x * i_x + scaling_bath_x * 0.5);
-  index[1] = (size_t)(scaling_bath_y * i_y + scaling_bath_y * 0.5);
-  if ((retval = nc_get_var1_float(r_displ_ncid, r_displ_z_varid, index,
-                                  &displ_return_value)))
+  t_real o_pos_x;
+  t_real o_pos_y;
+  getBathPos(i_x, i_y, o_pos_x, o_pos_y);
+
+  if(o_pos_x > l_displ_min_value_x - 0.5 *l_displ_cellsize &&
+      o_pos_x < l_displ_max_value_x + 0.5 *l_displ_cellsize &&
+      o_pos_y > l_displ_min_value_y - 0.5 *l_displ_cellsize &&
+      o_pos_y < l_displ_max_value_x + 0.5 *l_displ_cellsize){
+
+
+    index[0] = (size_t)((o_pos_x- abs(l_displ_min_value_x))/l_displ_cellsize);
+    index[1] = (size_t)((o_pos_y- abs(l_displ_min_value_y))/l_displ_cellsize);
+    if ((retval = nc_get_var1_float(r_displ_ncid, r_displ_z_varid, index,
+                                &displ_return_value)))
+      ERR(retval);
+    return (t_real)displ_return_value;
+  }
+  else{
+    return 0;
+  }
+
+}
+
+
+void tsunami_lab::io::NetCdf::update_max_min_bath(){
+  size_t index_min[1];
+  size_t index_max[1];
+  index_min[0] = 0;
+
+  // read x direction
+  index_max[0] = r_x_bath_length - 1;
+
+  if ((retval = nc_get_var1_float(r_bath_ncid, r_bath_x_varid, index_max,
+                                  &l_bath_max_value_x)))
     ERR(retval);
-  return (t_real)displ_return_value;
+  if ((retval = nc_get_var1_float(r_bath_ncid, r_bath_x_varid, index_min,
+                                  &l_bath_min_value_x)))
+    ERR(retval);
+
+
+  // read y direction
+  index_max[0] = r_y_bath_length - 1;
+
+  if ((retval = nc_get_var1_float(r_bath_ncid, r_bath_y_varid, index_max,
+                                  &l_bath_max_value_y)))
+    ERR(retval);
+  if ((retval = nc_get_var1_float(r_bath_ncid, r_bath_y_varid, index_min,
+                                  &l_bath_min_value_y)))
+    ERR(retval);
+
+}
+
+
+void tsunami_lab::io::NetCdf::update_max_min_displ(){
+  size_t index_min[1];
+  size_t index_max[1];
+  index_min[0] = 0;
+
+  // read x direction
+  index_max[0] = r_x_displ_length - 1;
+
+  if ((retval = nc_get_var1_float(r_displ_ncid, r_displ_x_varid, index_max,
+                                  &l_displ_max_value_x)))
+    ERR(retval);
+  if ((retval = nc_get_var1_float(r_displ_ncid, r_displ_x_varid, index_min,
+                                  &l_displ_min_value_x)))
+    ERR(retval);
+
+
+
+  // read y direction
+  index_max[0] = r_y_displ_length - 1;
+
+  if ((retval = nc_get_var1_float(r_displ_ncid, r_displ_y_varid, index_max,
+                                  &l_displ_max_value_y)))
+    ERR(retval);
+  if ((retval = nc_get_var1_float(r_displ_ncid, r_displ_y_varid, index_min,
+                                  &l_displ_min_value_y)))
+    ERR(retval);
+}
+
+
+void tsunami_lab::io::NetCdf::update_bath_cellsize(){
+  l_bath_cellsize = (l_bath_max_value_x -l_bath_min_value_x) / (r_x_bath_length-1);
+
+  /*
+  // add 0.5 * cellsize to get real start and end of bathymetry
+  l_bath_max_value_x += l_bath_cellsize * 0.5;
+  l_bath_max_value_y += l_bath_cellsize * 0.5;
+  l_bath_min_value_x -= l_bath_cellsize * 0.5;
+  l_bath_min_value_y -= l_bath_cellsize * 0.5;
+  */
+}
+
+
+void tsunami_lab::io::NetCdf::update_displ_cellsize(){
+  l_displ_cellsize = (l_displ_max_value_x -l_displ_min_value_x) / (r_x_displ_length - 1);
+
+  /*
+  // add 0.5 * cellsize to get real start and end of displacemet
+  l_displ_max_value_x += l_displ_cellsize * 0.5;
+  l_displ_max_value_y += l_displ_cellsize * 0.5;
+  l_displ_min_value_x -= l_displ_cellsize * 0.5;
+  l_displ_min_value_y -= l_displ_cellsize * 0.5;
+  */
+}
+
+
+void tsunami_lab::io::NetCdf::getBathPos(t_idx i_x, t_idx i_y,
+                                          t_real &o_pos_x, t_real &o_pos_y){
+  o_pos_x= i_x * l_bath_cellsize + l_bath_min_value_x;
+  o_pos_y= i_y * l_bath_cellsize + l_bath_min_value_y;
+
 }
