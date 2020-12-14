@@ -282,8 +282,8 @@ tsunami_lab::t_real tsunami_lab::io::NetCdf::read_bathymetry(t_idx i_x,
                                                              t_idx i_y) {
   float bath_return_value;
   size_t index[2];
-  index[0] = (size_t)(scaling_bath_x * i_x + scaling_bath_x * 0.5);
-  index[1] = (size_t)(scaling_bath_y * i_y + scaling_bath_y * 0.5);
+  index[0] = (size_t)(scaling_bath_x * i_x / l_dxy + scaling_bath_x * 0.5);
+  index[1] = (size_t)(scaling_bath_y * i_y / l_dxy + scaling_bath_y * 0.5);
   if ((retval = nc_get_var1_float(r_bath_ncid, r_bath_z_varid, index,
                                   &bath_return_value)))
     ERR(retval);
@@ -296,7 +296,8 @@ tsunami_lab::t_real tsunami_lab::io::NetCdf::read_displacement(t_idx i_x,
   size_t index[2];
   t_real o_pos_x;
   t_real o_pos_y;
-  getBathPos(i_x, i_y, o_pos_x, o_pos_y);
+  getCellPos(i_x, i_y, o_pos_x, o_pos_y);
+
 
   if(o_pos_x > l_displ_min_value_x - 0.5 *l_displ_cellsize &&
       o_pos_x < l_displ_max_value_x + 0.5 *l_displ_cellsize &&
@@ -304,8 +305,9 @@ tsunami_lab::t_real tsunami_lab::io::NetCdf::read_displacement(t_idx i_x,
       o_pos_y < l_displ_max_value_x + 0.5 *l_displ_cellsize){
 
 
-    index[0] = (size_t)((o_pos_x- abs(l_displ_min_value_x))/l_displ_cellsize);
-    index[1] = (size_t)((o_pos_y- abs(l_displ_min_value_y))/l_displ_cellsize);
+
+    index[0] = (size_t)((o_pos_x- l_displ_min_value_x)/l_displ_cellsize);
+    index[1] = (size_t)((o_pos_y- l_displ_min_value_y)/l_displ_cellsize);
     if ((retval = nc_get_var1_float(r_displ_ncid, r_displ_z_varid, index,
                                 &displ_return_value)))
       ERR(retval);
@@ -402,9 +404,9 @@ void tsunami_lab::io::NetCdf::update_displ_cellsize(){
 }
 
 
-void tsunami_lab::io::NetCdf::getBathPos(t_idx i_x, t_idx i_y,
+void tsunami_lab::io::NetCdf::getCellPos(t_idx i_x, t_idx i_y,
                                           t_real &o_pos_x, t_real &o_pos_y){
-  o_pos_x= i_x * l_bath_cellsize + l_bath_min_value_x;
-  o_pos_y= i_y * l_bath_cellsize + l_bath_min_value_y;
+  o_pos_x= i_x + l_bath_min_value_x;
+  o_pos_y= i_y + l_bath_min_value_y;
 
 }

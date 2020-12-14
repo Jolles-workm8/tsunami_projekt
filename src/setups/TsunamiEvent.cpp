@@ -67,8 +67,8 @@ tsunami_lab::t_real tsunami_lab::setups::TsunamiEvent::getBathymetry(
   t_real const d_in = l_netcdf->read_displacement(i_x, i_y);
 
   if (b_in < 0) {
-    return std::min(b_in, -lambda) + d_in;
+    return std::min(b_in + d_in, -lambda);
   } else {
-    return std::max(b_in, lambda) + d_in;
+    return std::max(b_in + d_in, lambda);
   }
 }

@@ -182,7 +182,7 @@ class tsunami_lab::io::NetCdf {
   * gets the real Position of a cell
   *
   **/
-  void getBathPos(t_idx i_x, t_idx i_y, t_real &o_pos_x, t_real &o_pos_y);
+  void getCellPos(t_idx i_x, t_idx i_y, t_real &o_pos_x, t_real &o_pos_y);
 };
 
 #endif

@@ -93,8 +93,7 @@ int main(int i_argc, char *i_argv[]) {
 
   std::cout << "runtime configuration" << std::endl;
   std::cout << "  number of cells in x-direction: " << l_nx << std::endl;
-  std::cout << "  number of cells in y-direction: " << l_ny << std::endl;
-  std::cout << "  cell size:                      " << l_dxy << std::endl;
+
 
   if (solver == 0) {
     std::cout << "  using roe-solver" << std::endl;
@@ -110,6 +109,9 @@ int main(int i_argc, char *i_argv[]) {
 
   l_ny = l_netcdf->get_amount_y();
   l_dxy = l_netcdf->get_dxy();
+
+  std::cout << "  number of cells in y-direction: " << l_ny << std::endl;
+  std::cout << "  cell size:                      " << l_dxy << std::endl;
 
   // construct setup
   tsunami_lab::setups::Setup *l_setup;
