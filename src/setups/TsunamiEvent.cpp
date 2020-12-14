@@ -45,7 +45,7 @@ tsunami_lab::t_real tsunami_lab::setups::TsunamiEvent::getHeight(
     t_real i_x, t_real i_y) const {
   t_real const b_in = l_netcdf->read_bathymetry(i_x, i_y);
   if (b_in < 0) {
-    return std::max(b_in, lambda);
+    return std::max(-b_in, lambda);
   } else {
     return 0;
   }
