@@ -54,7 +54,7 @@ class tsunami_lab::setups::TsunamiEvent : public Setup {
   /**
    *Constructor
    **/
-  TsunamiEvent(t_idx i_nx);
+  TsunamiEvent(t_idx i_nx, tsunami_lab::io::NetCdf *i_netCdf);
 
   /**
    * Gets the water height at a given point.

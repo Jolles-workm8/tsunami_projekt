@@ -35,10 +35,9 @@
 
 // TODO: split netdcf class into init, read and write, so we avoid redundant
 // computation
-tsunami_lab::setups::TsunamiEvent::TsunamiEvent(t_idx i_nx) {
+tsunami_lab::setups::TsunamiEvent::TsunamiEvent(t_idx i_nx, tsunami_lab::io::NetCdf *i_netcdf) {
   l_nx = i_nx;
-  l_netcdf = new tsunami_lab::io::NetCdf(l_nx, "bathymetry_data.nc",
-                                         "displacement_data.nc");
+  l_netcdf = i_netcdf;
 }
 
 tsunami_lab::t_real tsunami_lab::setups::TsunamiEvent::getHeight(

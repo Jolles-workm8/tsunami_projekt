@@ -83,9 +83,9 @@ void tsunami_lab::solvers::fwave::netUpdates(t_real i_hL, t_real i_hR,
                                              t_real o_netUpdateR[2]) {
 
   //check if left cell is dry
-  if(i_hL <= 0){
+  if(i_bL >= 0){
     //check if both cells are dry
-    if(i_hR <= 0){
+    if(i_bR >= 0){
       o_netUpdateL[0] = 0;
       o_netUpdateR[0] = 0;
       o_netUpdateL[1] = 0;
@@ -104,7 +104,7 @@ void tsunami_lab::solvers::fwave::netUpdates(t_real i_hL, t_real i_hR,
     }
   }
   //check if right cell is dry
-  else if(i_hR <= 0){
+  else if(i_bR >= 0){
     i_hR = i_hL;
     i_huR = -i_huL;
     i_bR = i_bL;

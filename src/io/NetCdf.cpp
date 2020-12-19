@@ -148,8 +148,8 @@ tsunami_lab::io::NetCdf::NetCdf(t_idx i_nx, const char *bathymetry_filename,
   // dims array is used to pass dimension of variables
   int dims[3];
   dims[0] = time_dim;
-  dims[1] = x_dim;
-  dims[2] = y_dim;
+  dims[1] = y_dim;
+  dims[2] = x_dim;
 
   // define other 3 dim variables
   if ((retval = nc_def_var(ncid, "height", NC_FLOAT, 3, dims, &h_varid)))
@@ -161,8 +161,8 @@ tsunami_lab::io::NetCdf::NetCdf(t_idx i_nx, const char *bathymetry_filename,
 
   // dim array for bathymetry dimensions
   int l_dimBath[2];
-  l_dimBath[0] = x_dim;
-  l_dimBath[1] = y_dim;
+  l_dimBath[0] = y_dim;
+  l_dimBath[1] = x_dim;
 
   // define 2 dim bathymetry
   if ((retval =
@@ -253,8 +253,8 @@ void tsunami_lab::io::NetCdf::write(t_idx i_stride, t_real const *i_h,
 
   // array count for data to write per time steps
   count[0] = 1;
-  count[1] = l_nx;
-  count[2] = l_ny;
+  count[1] = l_ny;
+  count[2] = l_nx;
   // array start for position displaceent in dimensions
   start[0] = i_timeStep;
   start[1] = 0;
@@ -282,8 +282,11 @@ tsunami_lab::t_real tsunami_lab::io::NetCdf::read_bathymetry(t_idx i_x,
                                                              t_idx i_y) {
   float bath_return_value;
   size_t index[2];
-  index[0] = (size_t)(scaling_bath_x * i_x / l_dxy + scaling_bath_x * 0.5);
-  index[1] = (size_t)(scaling_bath_y * i_y / l_dxy + scaling_bath_y * 0.5);
+  t_real o_pos_x;
+  t_real o_pos_y;
+  getCellPos(i_x, i_y, o_pos_x, o_pos_y);
+  index[1] = (size_t)(((o_pos_x- l_bath_min_value_x)/l_bath_cellsize)+0.5);
+  index[0] = (size_t)(((o_pos_y- l_bath_min_value_y)/l_bath_cellsize)+0.5);
   if ((retval = nc_get_var1_float(r_bath_ncid, r_bath_z_varid, index,
                                   &bath_return_value)))
     ERR(retval);
@@ -302,15 +305,19 @@ tsunami_lab::t_real tsunami_lab::io::NetCdf::read_displacement(t_idx i_x,
   if(o_pos_x > l_displ_min_value_x - 0.5 *l_displ_cellsize &&
       o_pos_x < l_displ_max_value_x + 0.5 *l_displ_cellsize &&
       o_pos_y > l_displ_min_value_y - 0.5 *l_displ_cellsize &&
-      o_pos_y < l_displ_max_value_x + 0.5 *l_displ_cellsize){
+      o_pos_y < l_displ_max_value_y + 0.5 *l_displ_cellsize){
 
 
-
-    index[0] = (size_t)((o_pos_x- l_displ_min_value_x)/l_displ_cellsize);
-    index[1] = (size_t)((o_pos_y- l_displ_min_value_y)/l_displ_cellsize);
+    index[1] = (size_t)(((o_pos_x- l_displ_min_value_x)/l_displ_cellsize)+0.5);
+    index[0] = (size_t)(((o_pos_y- l_displ_min_value_y)/l_displ_cellsize)+0.5);
     if ((retval = nc_get_var1_float(r_displ_ncid, r_displ_z_varid, index,
                                 &displ_return_value)))
       ERR(retval);
+      if(displ_return_value != displ_return_value){
+        std::cout << "Not a Number in displacement imput, using displacement 0" << std::endl;
+
+          return 0;
+      }
     return (t_real)displ_return_value;
   }
   else{

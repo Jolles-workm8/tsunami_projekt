@@ -115,7 +115,7 @@ int main(int i_argc, char *i_argv[]) {
 
   // construct setup
   tsunami_lab::setups::Setup *l_setup;
-  l_setup = new tsunami_lab::setups::TsunamiEvent(l_nx);
+  l_setup = new tsunami_lab::setups::TsunamiEvent(l_nx, l_netcdf);
 
   // construct solver
   tsunami_lab::patches::WavePropagation *l_waveProp;
@@ -156,7 +156,7 @@ int main(int i_argc, char *i_argv[]) {
 
   // set up time and print control
   tsunami_lab::t_idx l_timeStep = 0;
-  tsunami_lab::t_real l_endTime = 50;
+  tsunami_lab::t_real l_endTime = 2000;
   tsunami_lab::t_real l_simTime = 0;
 
   // initialize the timescaling the momentum is ignored in the first step
