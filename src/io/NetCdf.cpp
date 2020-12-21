@@ -189,10 +189,10 @@ tsunami_lab::io::NetCdf::NetCdf(t_idx i_nx, const char *bathymetry_filename,
   t_real *l_posX = new t_real[l_nx];
   t_real *l_posY = new t_real[l_ny];
   for (t_idx l_iy = 0; l_iy < l_ny; l_iy++) {
-    for (t_idx l_ix = 0; l_ix < l_nx; l_ix++) {
-      l_posX[l_ix] = (l_ix + 0.5) * l_dxy;
-      l_posY[l_iy] = (l_iy + 0.5) * l_dxy;
-    }
+    l_posY[l_iy] = (l_iy + 0.5) * l_dxy;
+  }
+  for (t_idx l_ix = 0; l_ix < l_nx; l_ix++) {
+    l_posX[l_ix] = (l_ix + 0.5) * l_dxy;
   }
 
   // write the coordinate variable data
@@ -214,40 +214,15 @@ tsunami_lab::io::NetCdf::~NetCdf() {
 
 void tsunami_lab::io::NetCdf::writeBathymetry(t_idx i_stride,
                                               t_real const *i_b) {
-  t_real *l_b = new t_real[l_nx * l_ny];
-
-  // iterate over all cells
-  for (t_idx l_iy = 0; l_iy < l_ny; l_iy++) {
-    for (t_idx l_ix = 0; l_ix < l_nx; l_ix++) {
-      t_idx l_id_from = l_iy * i_stride + l_ix;
-      t_idx l_id_to = l_iy * l_nx + l_ix;
-      l_b[l_id_to] = i_b[l_id_from];
-    }
-  }
-  // write bathymetry data
-  if ((retval = nc_put_var_float(ncid, bath_varid, &l_b[0]))) ERR(retval);
-
-  delete[] l_b;
+  size_t count[2] = {l_ny,l_nx};
+  size_t start[2] = {0,0};
+  ptrdiff_t imap[2] = {(ptrdiff_t)i_stride,1};
+  if ((retval = nc_put_varm_float(ncid, bath_varid, start, count, NULL, imap, &i_b[0]))) ERR(retval);
 }
 
 void tsunami_lab::io::NetCdf::write(t_idx i_stride, t_real const *i_h,
                                     t_real const *i_hu, t_real const *i_hv,
                                     t_idx i_timeStep, t_real i_simTime) {
-  // arrays from which data is writen
-  t_real *l_h = new t_real[l_nx * l_ny];
-  t_real *l_hu = new t_real[l_nx * l_ny];
-  t_real *l_hv = new t_real[l_nx * l_ny];
-
-  // iterate over all cells
-  for (t_idx l_iy = 0; l_iy < l_ny; l_iy++) {
-    for (t_idx l_ix = 0; l_ix < l_nx; l_ix++) {
-      t_idx l_id_from = l_iy * i_stride + l_ix;
-      t_idx l_id_to = l_iy * l_nx + l_ix;
-      l_h[l_id_to] = i_h[l_id_from];
-      l_hu[l_id_to] = i_hu[l_id_from];
-      l_hv[l_id_to] = i_hv[l_id_from];
-    }
-  }
 
   size_t start[3], count[3];
 
@@ -260,22 +235,20 @@ void tsunami_lab::io::NetCdf::write(t_idx i_stride, t_real const *i_h,
   start[1] = 0;
   start[2] = 0;
 
+  //array for mapping the values of calculated arrays whitout ghost cells
+  ptrdiff_t imap[3] = {1,(ptrdiff_t)i_stride,1};
   // write time since start
   if ((retval = nc_put_vara_float(ncid, time_varid, start, count, &i_simTime)))
     ERR(retval);
 
   // write the computed data.
-  if ((retval = nc_put_vara_float(ncid, h_varid, start, count, &l_h[0])))
+  if ((retval = nc_put_varm_float(ncid, h_varid, start, count, NULL, imap, &i_h[0])))
     ERR(retval);
-  if ((retval = nc_put_vara_float(ncid, hu_varid, start, count, &l_hu[0])))
+  if ((retval = nc_put_varm_float(ncid, hu_varid, start, count, NULL, imap, &i_hu[0])))
     ERR(retval);
-  if ((retval = nc_put_vara_float(ncid, hv_varid, start, count, &l_hv[0])))
+  if ((retval = nc_put_varm_float(ncid, hv_varid, start, count, NULL, imap, &i_hv[0])))
     ERR(retval);
   std::cout << i_simTime << std::endl;
-
-  delete[] l_h;
-  delete[] l_hu;
-  delete[] l_hv;
 }
 
 tsunami_lab::t_real tsunami_lab::io::NetCdf::read_bathymetry(t_idx i_x,
@@ -308,8 +281,8 @@ tsunami_lab::t_real tsunami_lab::io::NetCdf::read_displacement(t_idx i_x,
       o_pos_y < l_displ_max_value_y + 0.5 *l_displ_cellsize){
 
 
-    index[1] = (size_t)(((o_pos_x- l_displ_min_value_x)/l_displ_cellsize)+0.5);
-    index[0] = (size_t)(((o_pos_y- l_displ_min_value_y)/l_displ_cellsize)+0.5);
+    index[1] = (size_t)(((o_pos_x- l_displ_min_value_x)/l_displ_cellsize));
+    index[0] = (size_t)(((o_pos_y- l_displ_min_value_y)/l_displ_cellsize));
     if ((retval = nc_get_var1_float(r_displ_ncid, r_displ_z_varid, index,
                                 &displ_return_value)))
       ERR(retval);
@@ -387,33 +360,17 @@ void tsunami_lab::io::NetCdf::update_max_min_displ(){
 
 void tsunami_lab::io::NetCdf::update_bath_cellsize(){
   l_bath_cellsize = (l_bath_max_value_x -l_bath_min_value_x) / (r_x_bath_length-1);
-
-  /*
-  // add 0.5 * cellsize to get real start and end of bathymetry
-  l_bath_max_value_x += l_bath_cellsize * 0.5;
-  l_bath_max_value_y += l_bath_cellsize * 0.5;
-  l_bath_min_value_x -= l_bath_cellsize * 0.5;
-  l_bath_min_value_y -= l_bath_cellsize * 0.5;
-  */
 }
 
 
 void tsunami_lab::io::NetCdf::update_displ_cellsize(){
   l_displ_cellsize = (l_displ_max_value_x -l_displ_min_value_x) / (r_x_displ_length - 1);
-
-  /*
-  // add 0.5 * cellsize to get real start and end of displacemet
-  l_displ_max_value_x += l_displ_cellsize * 0.5;
-  l_displ_max_value_y += l_displ_cellsize * 0.5;
-  l_displ_min_value_x -= l_displ_cellsize * 0.5;
-  l_displ_min_value_y -= l_displ_cellsize * 0.5;
-  */
 }
 
 
 void tsunami_lab::io::NetCdf::getCellPos(t_idx i_x, t_idx i_y,
                                           t_real &o_pos_x, t_real &o_pos_y){
-  o_pos_x= i_x + l_bath_min_value_x;
-  o_pos_y= i_y + l_bath_min_value_y;
+  o_pos_x= i_x + l_bath_min_value_x+0.5*l_dxy;
+  o_pos_y= i_y + l_bath_min_value_y+0.5*l_dxy;
 
 }
