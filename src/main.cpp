@@ -125,6 +125,7 @@ int main(int i_argc, char *i_argv[]) {
   tsunami_lab::t_real l_hMax =
       std::numeric_limits<tsunami_lab::t_real>::lowest();
 
+  std::cout << "start reading setup values "<< std::endl;
   // set up solver
   for (tsunami_lab::t_idx l_cy = 0; l_cy < l_ny; l_cy++) {
     tsunami_lab::t_real l_y = l_cy * l_dxy;

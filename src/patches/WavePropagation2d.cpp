@@ -51,7 +51,7 @@ tsunami_lab::patches::WavePropagation2d::WavePropagation2d(t_idx i_xCells,
   m_b = new t_real[(m_xCells + 2) * (m_yCells + 2)];
 
   // init to zero
-  for (unsigned short l_ce = 0; l_ce != (m_xCells + 2) * (m_yCells + 2);
+  for (unsigned long l_ce = 0; l_ce != (m_xCells + 2) * (m_yCells + 2);
        l_ce++) {
     m_b[l_ce] = 0;
     for (unsigned short l_st = 0; l_st < 2; l_st++) {

@@ -248,7 +248,6 @@ void tsunami_lab::io::NetCdf::write(t_idx i_stride, t_real const *i_h,
     ERR(retval);
   if ((retval = nc_put_varm_float(ncid, hv_varid, start, count, NULL, imap, &i_hv[0])))
     ERR(retval);
-  std::cout << i_simTime << std::endl;
 }
 
 tsunami_lab::t_real tsunami_lab::io::NetCdf::read_bathymetry(t_idx i_x,
