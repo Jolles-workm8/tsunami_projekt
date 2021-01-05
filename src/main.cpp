@@ -38,24 +38,15 @@
 #include <iostream>
 #include <limits>
 
-#include "io/Csv.h"
 #include "io/NetCdf.h"
-#include "patches/WavePropagation1d.h"
 #include "patches/WavePropagation2d.h"
-#include "setups/CircularDamBreak2d.h"
-#include "setups/DamBreak1d.h"
-#include "setups/DamBreakNew.h"
-#include "setups/RareRare1d.h"
-#include "setups/ShockShock1d.h"
-#include "setups/SubcriticalFlow.h"
-#include "setups/SupercriticalFlow.h"
+#include "setups/ArtificialTsunami.h"
 #include "setups/TsunamiEvent.h"
 
 int main(int i_argc, char *i_argv[]) {
   // number of cells in x- and y-direction. Default for y-dimension is 1.
   tsunami_lab::t_idx l_nx = 0;
   tsunami_lab::t_idx l_ny = 0;
-  int solver;
 
   // set cell size
   tsunami_lab::t_real l_dxy = 1;
@@ -66,7 +57,7 @@ int main(int i_argc, char *i_argv[]) {
   std::cout << "### http://scalable.uni-jena.de ###" << std::endl;
   std::cout << "###################################" << std::endl;
 
-  if (i_argc != 3) {
+  if (i_argc != 2) {
     std::cerr << "invalid number of arguments, usage:" << std::endl;
     std::cerr << "  ./build/tsunami_lab N_CELLS_X SOLVER" << std::endl;
     std::cerr << "where N_CELLS_X is the number of cells in x-direction and "
@@ -82,25 +73,10 @@ int main(int i_argc, char *i_argv[]) {
       std::cerr << "invalid number of cells" << std::endl;
       return EXIT_FAILURE;
     }
-
-    solver = atoi(i_argv[2]);
-    if (!(solver == 0 || solver == 1)) {
-      std::cerr << "invalid setup for solver, use 0 or 1 to set up solver"
-                << std::endl;
-      return EXIT_FAILURE;
-    }
   }
 
   std::cout << "runtime configuration" << std::endl;
   std::cout << "  number of cells in x-direction: " << l_nx << std::endl;
-
-
-  if (solver == 0) {
-    std::cout << "  using roe-solver" << std::endl;
-  }
-  if (solver == 1) {
-    std::cout << "  using fwave-solver" << std::endl;
-  }
 
   // construct NetCdf-reader
   tsunami_lab::io::NetCdf *l_netcdf;
@@ -125,7 +101,7 @@ int main(int i_argc, char *i_argv[]) {
   tsunami_lab::t_real l_hMax =
       std::numeric_limits<tsunami_lab::t_real>::lowest();
 
-  std::cout << "start reading setup values "<< std::endl;
+  std::cout << "start reading setup values " << std::endl;
   // set up solver
   for (tsunami_lab::t_idx l_cy = 0; l_cy < l_ny; l_cy++) {
     tsunami_lab::t_real l_y = l_cy * l_dxy;
