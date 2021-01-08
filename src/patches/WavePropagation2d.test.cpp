@@ -32,8 +32,8 @@
 
 #include "WavePropagation2d.h"
 
-
-TEST_CASE("Test the 2d wave propagation solver in a steady State.", "[WaveProp2dSteady]") {
+TEST_CASE("Test the 2d wave propagation solver in a steady State.",
+          "[WaveProp2dSteady]") {
   /*
    * Test case:
    *
@@ -66,10 +66,10 @@ TEST_CASE("Test the 2d wave propagation solver in a steady State.", "[WaveProp2d
   m_waveProp.setGhostOutflow();
 
   // perform a time step
-  m_waveProp.timeStep(0.1, 1);
+  m_waveProp.timeStep(0.1);
 
-  for(std::size_t l_ceY = 0; l_ceY< l_yColums; l_ceY++){
-      // steady state
+  for (std::size_t l_ceY = 0; l_ceY < l_yColums; l_ceY++) {
+    // steady state
     for (std::size_t l_ce = 0; l_ce < l_xRows; l_ce++) {
       REQUIRE(m_waveProp.getHeight()[l_ce + l_xRows * l_ceY] == Approx(10));
       REQUIRE(m_waveProp.getMomentumX()[l_ce + l_xRows * l_ceY] == Approx(0));

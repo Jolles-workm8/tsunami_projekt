@@ -53,7 +53,9 @@ env.Append( CXXFLAGS = [ '-std=c++11',
                          '-Wextra',
                          '-Wpedantic',
                          '-Werror',
-                         '-lnetcdf' ] )
+                         '-lnetcdf',
+                         '-fopenmp' ] )
+env.Append( LINKFLAGS = ['-fopenmp'])
 
 # set optimization mode
 if 'debug' in env['mode']:

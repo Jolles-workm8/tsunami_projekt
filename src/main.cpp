@@ -32,6 +32,7 @@
 #include <netcdf.h>
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <cstdlib>
 #include <fstream>
@@ -59,12 +60,9 @@ int main(int i_argc, char *i_argv[]) {
 
   if (i_argc != 2) {
     std::cerr << "invalid number of arguments, usage:" << std::endl;
-    std::cerr << "  ./build/tsunami_lab N_CELLS_X SOLVER" << std::endl;
+    std::cerr << "  ./build/tsunami_lab N_CELLS_X " << std::endl;
     std::cerr << "where N_CELLS_X is the number of cells in x-direction and "
                  "y-direction is computed automatically."
-              << std::endl;
-    std::cerr << "where SOLVER is the solver of one iteration. Type 0 for "
-                 "roe-solver and 1 for fwave solver."
               << std::endl;
     return EXIT_FAILURE;
   } else {
@@ -102,7 +100,13 @@ int main(int i_argc, char *i_argv[]) {
       std::numeric_limits<tsunami_lab::t_real>::lowest();
 
   std::cout << "start reading setup values " << std::endl;
+
+  using namespace std::chrono;
+
+  auto start = system_clock::now();
+
   // set up solver
+  // TODO Parallelize for First touch
   for (tsunami_lab::t_idx l_cy = 0; l_cy < l_ny; l_cy++) {
     tsunami_lab::t_real l_y = l_cy * l_dxy;
 
@@ -131,6 +135,11 @@ int main(int i_argc, char *i_argv[]) {
     }
   }
 
+  auto end = system_clock::now();
+
+  const double elapsed_io = duration<double>(end - start).count();
+
+  std::cout << "seconds needed to read data from files:" << elapsed_io << '\n';
   // set up time and print control
   tsunami_lab::t_idx l_timeStep = 0;
   tsunami_lab::t_real l_endTime = 2000;
@@ -151,6 +160,7 @@ int main(int i_argc, char *i_argv[]) {
 
   std::cout << "entering time loop" << std::endl;
   // iterate over time
+  double elapsed_total = 0;
   while (l_simTime < l_endTime) {
     if (l_timeStep % 25 == 0) {
       std::cout << "  simulation time / #time steps: " << l_simTime << " / "
@@ -160,15 +170,21 @@ int main(int i_argc, char *i_argv[]) {
                       l_waveProp->getMomentumX(), l_waveProp->getMomentumY(),
                       l_timeStep / 25, l_simTime);
     }
-
     l_waveProp->setGhostOutflow();
-    l_waveProp->timeStep(l_scaling, solver);
 
+    start = system_clock::now();
+    l_waveProp->timeStep(l_scaling);
+    end = system_clock::now();
+    elapsed_total += duration<double>(end - start).count();
     l_timeStep++;
     l_simTime += l_dt;
   }
 
-  std::cout << "finished time loop" << std::endl;
+  const double elapsed_cell = elapsed_total / (l_timeStep * (l_nx * l_ny));
+  std::cout << "finished time loop. total time needed in seconds: "
+            << elapsed_total << '\n'
+            << "estimated time needed for one cell per timestep: "
+            << elapsed_cell << '\n';
 
   // free memory
   std::cout << "freeing memory" << std::endl;

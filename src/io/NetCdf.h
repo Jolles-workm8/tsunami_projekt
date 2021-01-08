@@ -1,8 +1,8 @@
 /**
- * @author Alexander Breuer (alex.breuer AT uni-jena.de)
+ * @author Julius Isken, Max Engel
  *
  * @section LICENSE
- * Copyright 2020, Friedrich Schiller University Jena
+ * Copyright 2020, Julius Isken, Max Engel
  *
  * Redistribution and use in source and binary forms, with or without
  *modification, are permitted provided that the following conditions are met:
@@ -26,7 +26,7 @@
  *OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * @section DESCRIPTION
- * IO-routines for writing a snapshot as Comma Separated Values (CSV).
+ * Read and Write from and to NetCDF-files
  **/
 #ifndef TSUNAMI_LAB_IO_NETCDF
 #define TSUNAMI_LAB_IO_NETCDF
@@ -71,12 +71,11 @@ class tsunami_lab::io::NetCdf {
   size_t r_y_bath_length;
   int l_bath_cellsize;
 
-  //variables for min and max in dimension x and y of bathymetry file
+  // variables for min and max in dimension x and y of bathymetry file
   float l_bath_max_value_x;
   float l_bath_min_value_x;
   float l_bath_max_value_y;
   float l_bath_min_value_y;
-
 
   // variables needed for reading for the displacement file
   int r_displ_ncid;
@@ -89,8 +88,7 @@ class tsunami_lab::io::NetCdf {
   size_t r_y_displ_length;
   int l_displ_cellsize;
 
-
-  //variables for min and max in dimension x and y of bathymetry file
+  // variables for min and max in dimension x and y of bathymetry file
   float l_displ_max_value_x;
   float l_displ_min_value_x;
   float l_displ_max_value_y;
@@ -118,7 +116,6 @@ class tsunami_lab::io::NetCdf {
   ~NetCdf();
 
   /**
-   * Writes the data as CSV to the given stream.
    *
    * @param i_dxy cell width in x- and y-direction.
    * @param i_nx number of cells in x-direction.
@@ -139,50 +136,50 @@ class tsunami_lab::io::NetCdf {
   void writeBathymetry(t_idx i_stride, t_real const* i_b);
 
   /**
-  * read the next neighbour bathymetry cell of the  simulation cell x y
-  **/
+   * read the next neighbour bathymetry cell of the  simulation cell x y
+   **/
   t_real read_bathymetry(t_idx i_x, t_idx i_y);
 
   /**
-  * read the next neighbour displacement cell of the  simulation cell x y
-  * if the cell is outside of displacement data return 0
-  **/
+   * read the next neighbour displacement cell of the  simulation cell x y
+   * if the cell is outside of displacement data return 0
+   **/
   t_real read_displacement(t_idx i_x, t_idx i_y);
 
   /**
-  * returns the number of cells in y direction of the simulation
-  **/
+   * returns the number of cells in y direction of the simulation
+   **/
   t_idx get_amount_y() { return l_ny; };
 
   /**
-  *returns the size of a cell in the simulation
-  **/
+   *returns the size of a cell in the simulation
+   **/
   t_real get_dxy() { return l_dxy; };
 
   /**
-  * updates the maximum and minimum of bathymetry in x and y direction
-  **/
+   * updates the maximum and minimum of bathymetry in x and y direction
+   **/
   void update_max_min_bath();
 
   /**
-  * updates the maximum and minimum of displacement in x and y direction
-  **/
+   * updates the maximum and minimum of displacement in x and y direction
+   **/
   void update_max_min_displ();
 
   /**
-  * update the cellsize of bathymetry
-  **/
+   * update the cellsize of bathymetry
+   **/
   void update_bath_cellsize();
 
   /**
-  * update the cellsize of displacement
-  **/
+   * update the cellsize of displacement
+   **/
   void update_displ_cellsize();
   /**
-  * gets the real Position of a cell
-  *
-  **/
-  void getCellPos(t_idx i_x, t_idx i_y, t_real &o_pos_x, t_real &o_pos_y);
+   * gets the real Position of a cell
+   *
+   **/
+  void getCellPos(t_idx i_x, t_idx i_y, t_real& o_pos_x, t_real& o_pos_y);
 };
 
 #endif
