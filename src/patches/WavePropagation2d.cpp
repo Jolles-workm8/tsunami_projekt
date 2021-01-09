@@ -91,7 +91,7 @@ void tsunami_lab::patches::WavePropagation2d::timeStep(t_real i_scaling) {
     l_hvNew[l_ce] = l_hvOld[l_ce];
   }
 
-#pragma omp parallel
+  #pragma omp parallel for
   // iterate over all collums in x direction with ghost cells
   for (t_idx l_ceY = 0; l_ceY < (m_yCells + 2); l_ceY++) {
     // iterate over edges in x direction and update with Riemann solutions
@@ -115,12 +115,14 @@ void tsunami_lab::patches::WavePropagation2d::timeStep(t_real i_scaling) {
       l_huNew[l_ceR] -= i_scaling * l_netUpdates[1][1];
     }
   }
+
   // init new cell quantities
   for (t_idx l_ce = 0; l_ce < (m_xCells + 2) * (m_yCells + 2); l_ce++) {
     l_hOld[l_ce] = l_hNew[l_ce];
     l_huOld[l_ce] = l_huNew[l_ce];
     l_hvOld[l_ce] = l_hvNew[l_ce];
   }
+  #pragma omp parallel for
   // iterate over all rows in y direction without ghost cells
   for (t_idx l_ceX = 1; l_ceX < (m_xCells + 1); l_ceX++) {
     // iterate over edges in y direction and update with Riemann solutions

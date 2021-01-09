@@ -48,6 +48,7 @@ int main(int i_argc, char *i_argv[]) {
   // number of cells in x- and y-direction. Default for y-dimension is 1.
   tsunami_lab::t_idx l_nx = 0;
   tsunami_lab::t_idx l_ny = 0;
+  tsunami_lab::t_idx l_rescaleFactor = 1;
 
   // set cell size
   tsunami_lab::t_real l_dxy = 1;
@@ -58,7 +59,7 @@ int main(int i_argc, char *i_argv[]) {
   std::cout << "### http://scalable.uni-jena.de ###" << std::endl;
   std::cout << "###################################" << std::endl;
 
-  if (i_argc != 2) {
+  if (i_argc != 3) {
     std::cerr << "invalid number of arguments, usage:" << std::endl;
     std::cerr << "  ./build/tsunami_lab N_CELLS_X " << std::endl;
     std::cerr << "where N_CELLS_X is the number of cells in x-direction and "
@@ -71,6 +72,12 @@ int main(int i_argc, char *i_argv[]) {
       std::cerr << "invalid number of cells" << std::endl;
       return EXIT_FAILURE;
     }
+
+    l_rescaleFactor = atoi(i_argv[2]);
+    if (l_nx < 1) {
+      std::cerr << "invalid output rescaleFactor" << std::endl;
+      return EXIT_FAILURE;
+    }
   }
 
   std::cout << "runtime configuration" << std::endl;
@@ -78,7 +85,7 @@ int main(int i_argc, char *i_argv[]) {
 
   // construct NetCdf-reader
   tsunami_lab::io::NetCdf *l_netcdf;
-  l_netcdf = new tsunami_lab::io::NetCdf(l_nx, "bathymetry_data.nc",
+  l_netcdf = new tsunami_lab::io::NetCdf(l_nx, l_rescaleFactor, "bathymetry_data.nc",
                                          "displacement_data.nc");
 
   l_ny = l_netcdf->get_amount_y();

@@ -109,8 +109,18 @@ class tsunami_lab::io::NetCdf {
 
   // variables for reading filename
 
+  // saves a rescaling Value for the output array
+  // 1 equals normal
+  // 2 eauqls half
+  // only values greater or equal than 1 are accepted
+  t_idx rescaleFactor;
+
+  //saves the length of the output array in the specific directions
+  t_idx l_nx_out;
+  t_idx l_ny_out;
+
  public:
-  NetCdf(t_idx i_nx, const char* bathymetry_filename,
+  NetCdf(t_idx i_nx, t_idx i_rescaleFactor, const char* bathymetry_filename,
          const char* displacement_filename);
 
   ~NetCdf();
@@ -128,13 +138,13 @@ class tsunami_lab::io::NetCdf {
    *not required.
    * @param i_hv momentum in y-direction of the cells; optional: use nullptr if
    *not required.
-   * @param io_stream stream to which the CSV-data is written.
    **/
   void write(t_idx i_stride, t_real const* i_h, t_real const* i_hu,
              t_real const* i_hv, t_idx i_timeStep, t_real i_simTime);
 
   void writeBathymetry(t_idx i_stride, t_real const* i_b);
 
+  void writeArray(t_idx i_stride, t_real const* i_array, t_idx i_timeStep, int i_varid);
   /**
    * read the next neighbour bathymetry cell of the  simulation cell x y
    **/
@@ -175,6 +185,7 @@ class tsunami_lab::io::NetCdf {
    * update the cellsize of displacement
    **/
   void update_displ_cellsize();
+
   /**
    * gets the real Position of a cell
    *

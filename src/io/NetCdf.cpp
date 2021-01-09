@@ -36,10 +36,10 @@
 #define ERR(e) \
   { printf("Error: %s\n", nc_strerror(e)); }
 
-tsunami_lab::io::NetCdf::NetCdf(t_idx i_nx, const char *bathymetry_filename,
+tsunami_lab::io::NetCdf::NetCdf(t_idx i_nx, t_idx i_rescaleFactor, const char *bathymetry_filename,
                                 const char *displacement_filename) {
   l_nx = i_nx;
-
+  rescaleFactor= i_rescaleFactor;
   ////////////////////////////////////////////
   /// Prepare reading files from a source ///
   //////////////////////////////////////////
@@ -115,13 +115,15 @@ tsunami_lab::io::NetCdf::NetCdf(t_idx i_nx, const char *bathymetry_filename,
   /// Prepare writing data into a file ///
   ///////////////////////////////////////
 
+  l_nx_out = (int)(l_nx / rescaleFactor);
+  l_ny_out = (int)(l_ny / rescaleFactor);
   int x_dim, y_dim, time_dim;
 
   if ((retval = nc_create("solver.nc", NC_CLOBBER, &ncid))) ERR(retval);
 
   // define the dimensions.
-  if ((retval = nc_def_dim(ncid, "x", l_nx, &x_dim))) ERR(retval);
-  if ((retval = nc_def_dim(ncid, "y", l_ny, &y_dim))) ERR(retval);
+  if ((retval = nc_def_dim(ncid, "x", l_nx_out, &x_dim))) ERR(retval);
+  if ((retval = nc_def_dim(ncid, "y", l_ny_out, &y_dim))) ERR(retval);
   if ((retval = nc_def_dim(ncid, "seconds since", NC_UNLIMITED, &time_dim)))
     ERR(retval);
 
@@ -186,13 +188,13 @@ tsunami_lab::io::NetCdf::NetCdf(t_idx i_nx, const char *bathymetry_filename,
   if ((retval = nc_enddef(ncid))) ERR(retval);
 
   // derive coordinates of cell center
-  t_real *l_posX = new t_real[l_nx];
-  t_real *l_posY = new t_real[l_ny];
-  for (t_idx l_iy = 0; l_iy < l_ny; l_iy++) {
-    l_posY[l_iy] = (l_iy + 0.5) * l_dxy;
+  t_real *l_posX = new t_real[l_nx_out];
+  t_real *l_posY = new t_real[l_ny_out];
+  for (t_idx l_iy = 0; l_iy < l_ny_out; l_iy++) {
+    l_posY[l_iy] = (l_iy + 0.5) * l_dxy * rescaleFactor;
   }
-  for (t_idx l_ix = 0; l_ix < l_nx; l_ix++) {
-    l_posX[l_ix] = (l_ix + 0.5) * l_dxy;
+  for (t_idx l_ix = 0; l_ix < l_nx_out; l_ix++) {
+    l_posX[l_ix] = (l_ix + 0.5) * l_dxy * rescaleFactor;
   }
 
   // write the coordinate variable data
@@ -214,40 +216,94 @@ tsunami_lab::io::NetCdf::~NetCdf() {
 
 void tsunami_lab::io::NetCdf::writeBathymetry(t_idx i_stride,
                                               t_real const *i_b) {
-  size_t count[2] = {l_ny,l_nx};
+
+
+  t_real l_cell_Value;
+  t_idx l_arrayPos;
+  size_t count[2] = {1,1};
   size_t start[2] = {0,0};
-  ptrdiff_t imap[2] = {(ptrdiff_t)i_stride,1};
-  if ((retval = nc_put_varm_float(ncid, bath_varid, start, count, NULL, imap, &i_b[0]))) ERR(retval);
+  //iterate over every cell in the output array
+  for (t_idx l_ceX = 0; l_ceX < l_nx_out; l_ceX++) {
+    for (t_idx l_ceY = 0; l_ceY < l_ny_out; l_ceY++) {
+
+      l_cell_Value = 0;
+      //iterate and average over the cells in one output cell
+      for (t_idx l_ix = 0; l_ix < rescaleFactor; l_ix++) {
+        for (t_idx l_iy = 0; l_iy < rescaleFactor; l_iy++) {
+          l_arrayPos = (l_ceX * rescaleFactor + l_ix) +
+            (l_ceY * rescaleFactor + l_iy)* i_stride;
+          l_cell_Value += i_b[l_arrayPos];
+        }
+      }
+
+      l_cell_Value /= (rescaleFactor * rescaleFactor);
+      start[0] = l_ceY;
+      start[1] = l_ceX;
+      if ((retval = nc_put_vara_float(ncid, bath_varid, start, count, &l_cell_Value))) ERR(retval);
+    }
+  }
 }
 
 void tsunami_lab::io::NetCdf::write(t_idx i_stride, t_real const *i_h,
                                     t_real const *i_hu, t_real const *i_hv,
                                     t_idx i_timeStep, t_real i_simTime) {
 
+  size_t start[1], count[1];
+
+  // array count for data to write per time steps
+  count[0] = 1;
+  // array start for position displaceent in dimensions
+  start[0] = i_timeStep;
+
+  // write time since start
+  if ((retval = nc_put_vara_float(ncid, time_varid, start, count, &i_simTime)))
+    ERR(retval);
+
+  writeArray(i_stride, i_h, i_timeStep, h_varid);
+  writeArray(i_stride, i_hu, i_timeStep, hu_varid);
+  writeArray(i_stride, i_hv, i_timeStep, hv_varid);
+}
+
+void tsunami_lab::io::NetCdf::writeArray(t_idx i_stride, t_real const *i_array,
+                                        t_idx i_timeStep, int i_varid) {
+
   size_t start[3], count[3];
 
   // array count for data to write per time steps
   count[0] = 1;
-  count[1] = l_ny;
-  count[2] = l_nx;
+  count[1] = 1;
+  count[2] = 1;
   // array start for position displaceent in dimensions
   start[0] = i_timeStep;
   start[1] = 0;
   start[2] = 0;
 
-  //array for mapping the values of calculated arrays whitout ghost cells
-  ptrdiff_t imap[3] = {1,(ptrdiff_t)i_stride,1};
-  // write time since start
-  if ((retval = nc_put_vara_float(ncid, time_varid, start, count, &i_simTime)))
-    ERR(retval);
+  t_real l_cell_Value;
+  t_idx l_arrayPos;
 
   // write the computed data.
-  if ((retval = nc_put_varm_float(ncid, h_varid, start, count, NULL, imap, &i_h[0])))
-    ERR(retval);
-  if ((retval = nc_put_varm_float(ncid, hu_varid, start, count, NULL, imap, &i_hu[0])))
-    ERR(retval);
-  if ((retval = nc_put_varm_float(ncid, hv_varid, start, count, NULL, imap, &i_hv[0])))
-    ERR(retval);
+  for (t_idx l_ceX = 0; l_ceX < l_nx_out; l_ceX++) {
+    for (t_idx l_ceY = 0; l_ceY < l_ny_out; l_ceY++) {
+
+      l_cell_Value = 0;
+
+      //iterate and average over the cells in one output cell
+      for (t_idx l_ix = 0; l_ix < rescaleFactor; l_ix++) {
+        for (t_idx l_iy = 0; l_iy < rescaleFactor; l_iy++) {
+          l_arrayPos = (l_ceX * rescaleFactor + l_ix) +
+            (l_ceY * rescaleFactor + l_iy)* i_stride;
+          l_cell_Value += i_array[l_arrayPos];
+        }
+      }
+
+      l_cell_Value /= (rescaleFactor * rescaleFactor);
+      start[1] = l_ceY;
+      start[2] = l_ceX;
+
+      if ((retval = nc_put_vara_float(ncid, i_varid, start, count, &l_cell_Value))) ERR(retval);
+
+    }
+  }
 }
 
 tsunami_lab::t_real tsunami_lab::io::NetCdf::read_bathymetry(t_idx i_x,

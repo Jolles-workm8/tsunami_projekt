@@ -42,7 +42,8 @@ if vars.UnknownVariables():
   exit(1)
 
 # create environment
-env = Environment( variables = vars )
+env = Environment(CXX = 'g++',
+                    variables = vars )
 
 # generate help message
 Help( vars.GenerateHelpText( env ) )
@@ -78,6 +79,7 @@ if 'san' in  env['mode']:
 
 # add Catch2
 env.Append( CXXFLAGS = [ '-Isubmodules/Catch2/single_include' ] )
+
 
 
 # get source files
