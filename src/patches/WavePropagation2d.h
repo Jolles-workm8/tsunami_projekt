@@ -70,6 +70,9 @@ class tsunami_lab::patches::WavePropagation2d : public WavePropagation {
   //!  is right boundary reflecting
   bool m_reflBoundR = false;
 
+  t_idx numberThreads = 1;
+  t_idx scheduleAssignement = 1;
+
  public:
   /**
    * Constructs the 2d wave propagation solver.
