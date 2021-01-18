@@ -16,6 +16,7 @@
 # Entry-point for builds.
 ##
 import SCons
+import SCons.Builder
 
 print( '###################################' )
 print( '### Tsunami Lab                 ###' )
@@ -24,6 +25,8 @@ print( '### http://scalable.uni-jena.de ###' )
 print( '###################################' )
 print()
 print('runnning build script')
+
+bld = SCons.Builder.Builder(action = 'nvcc < $SOURCE > $TARGET',src_suffix = '.cu')
 
 # configuration
 vars = Variables()
@@ -42,8 +45,12 @@ if vars.UnknownVariables():
   exit(1)
 
 # create environment
-env = Environment(CXX = 'g++',
+import os
+env = Environment(ENV = os.environ,
+                    CXX = 'icpc',
                     variables = vars )
+
+
 
 # generate help message
 Help( vars.GenerateHelpText( env ) )
@@ -52,11 +59,15 @@ Help( vars.GenerateHelpText( env ) )
 env.Append( CXXFLAGS = [ '-std=c++11',
                          '-Wall',
                          '-Wextra',
-                         '-Wpedantic',
+                         '-qopt-report',
                          '-Werror',
-                         '-lnetcdf',
-                         '-fopenmp' ] )
-env.Append( LINKFLAGS = ['-fopenmp'])
+                         
+                         '-qopenmp' ] )
+env.Append( LINKFLAGS = ['-qopenmp'])
+env.Append( LIBS=File('/home/mi48peh/software/lib/libnetcdf.so'))
+
+   
+env.Append(BUILDER = {'CUDA': bld})
 
 # set optimization mode
 if 'debug' in env['mode']:
@@ -89,15 +100,11 @@ VariantDir( variant_dir = 'build/src',
 env.sources = []
 env.tests = []
 
-conf = Configure(env)
-if not conf.CheckLib('netcdf'):
-    Exit('can not find netcdf')
-
-
 Export('env')
 SConscript( 'build/src/SConscript' )
 Import('env')
 
+#env.CUDA( 'build/tsunami_lab', 'scr/patches/Wavepropagation2d')
 env.Program( target = 'build/tsunami_lab',
              source = env.sources + env.standalone )
 
