@@ -4,28 +4,30 @@
 
 __device__ void netUpdates(float *i_height_old, float *i_height_new,
                            float *i_momentum_old, float *i_momentum_new,
-                           int i_nx, int i_ny, float *i_b, float i_scaling) {
+                           int i_nx, int i_ny, float *i_b, float i_scaling,
+                           int idx, int i_stride) {
   int l_i = blockIdx.x * blockDim.x + threadIdx.x;
   int l_j = blockIdx.y * blockDim.y + threadIdx.y;
-  int idx = l_i * i_nx + l_j;
 
-  int i_displ = 1;
   float m_gSqrt = sqrtf(9.812);
   float m_g = 9.812;
 
-  if (l_i < i_nx - 1 && l_j < i_ny - 1) {
+  i_height_new[idx] = i_height_old[idx];
+  i_momentum_new[idx] = i_momentum_old[idx];
+
+  if (l_i < i_nx && l_j < i_ny) {
     // compute u for left and right
     float l_uL = i_momentum_old[idx] / i_height_old[idx];
-    float l_uR = i_momentum_old[idx + i_displ] / i_height_old[idx + i_displ];
+    float l_uR = i_momentum_old[idx + i_stride] / i_height_old[idx + i_stride];
 
     float l_hL = i_height_old[idx];
-    float l_hR = i_height_old[idx + i_displ];
+    float l_hR = i_height_old[idx + i_stride];
 
     float l_huL = i_momentum_old[idx];
-    float l_huR = i_momentum_old[idx + i_displ];
+    float l_huR = i_momentum_old[idx + i_stride];
 
     float l_bL = i_b[idx];
-    float l_bR = i_b[idx + i_displ];
+    float l_bR = i_b[idx + i_stride];
 
     // compute WaveSpeed ,
 
@@ -64,21 +66,53 @@ __device__ void netUpdates(float *i_height_old, float *i_height_new,
       atomicAdd(&i_height_new[idx], l_strengthL);
       atomicAdd(&i_momentum_new[idx], l_strengthL * l_waveSpeedL);
     } else {
-      atomicAdd(&i_height_new[idx + i_displ], l_strengthL);
-      atomicAdd(&i_momentum_new[idx + i_displ], l_strengthL * l_waveSpeedL);
+      atomicAdd(&i_height_new[idx + i_stride], l_strengthL);
+      atomicAdd(&i_momentum_new[idx + i_stride], l_strengthL * l_waveSpeedL);
     }
 
     if (l_waveSpeedR > 0) {
-      atomicAdd(&i_height_new[idx + i_displ], l_strengthR);
-      atomicAdd(&i_momentum_new[idx + i_displ], l_strengthR * l_waveSpeedR);
+      atomicAdd(&i_height_new[idx + i_stride], l_strengthR);
+      atomicAdd(&i_momentum_new[idx + i_stride], l_strengthR * l_waveSpeedR);
     } else {
       atomicAdd(&i_height_new[idx], l_strengthR);
       atomicAdd(&i_momentum_new[idx], l_strengthR * l_waveSpeedR);
     }
     __syncthreads();
+  }
+  i_height_old[idx] = i_height_new[idx];
+  i_momentum_old[idx] = i_momentum_new[idx];
+}
 
-    i_height_old[idx] = i_height_new[idx];
-    i_momentum_old[idx] = i_momentum_new[idx];
+__device__ void setGhostOutflow(float *i_height, float *i_hu, float *i_hv,
+                                float *i_b, int i_nx, int i_ny) {
+  int l_i = blockIdx.x * blockDim.x + threadIdx.x;
+  int l_j = blockIdx.y * blockDim.y + threadIdx.y;
+  int idx = l_i + l_j * i_nx;
+
+  if (l_j == 0) {
+    i_height[idx] = i_height[idx + i_nx];
+    i_hu[idx] = i_hu[idx + i_nx];
+    i_hv[idx] = i_hv[idx + i_nx];
+    i_b[idx] = i_b[idx + i_nx];
+  } else if (l_j == i_nx - 1) {
+    i_height[idx] = i_height[idx - i_nx];
+    i_hu[idx] = i_hu[idx - i_nx];
+    i_hv[idx] = i_hv[idx - i_nx];
+    i_b[idx] = i_b[idx - i_nx];
+  }
+
+  __syncthreads();
+
+  if (l_i == 0) {
+    i_height[idx] = i_height[idx + 1];
+    i_hu[idx] = i_hu[idx + 1];
+    i_hv[idx] = i_hv[idx + 1];
+    i_b[idx] = i_b[idx + 1];
+  } else if (l_i == i_ny - 1) {
+    i_height[idx] = i_height[idx - 1];
+    i_hu[idx] = i_hu[idx - 1];
+    i_hv[idx] = i_hv[idx - 1];
+    i_b[idx] = i_b[idx - 1];
   }
 }
 
@@ -89,22 +123,29 @@ __global__ void WavePropagation2d(float *i_h_old, float *i_h_new,
                                   float i_scaling) {
   int l_i = blockIdx.x * blockDim.x + threadIdx.x;
   int l_j = blockIdx.y * blockDim.y + threadIdx.y;
-  int idx = l_i * i_nx + l_j;
-  // printf("%f\n", i_h_old[idx]);
-  // for (int i = 0; i < i_iter; ++i) {
-  netUpdates(i_h_old, i_h_new, i_hu_old, i_hu_new, i_nx, i_ny, i_b, i_scaling);
-  __syncthreads();
-  //}
-  printf("%f\n", i_h_old[idx]);
+  int idx = l_i + l_j * i_nx;
+  for (int i = 0; i < i_iter; ++i) {
+    setGhostOutflow(i_h_old, i_hu_old, i_hv_old, i_b, i_nx, i_ny);
+    __syncthreads();
+
+    netUpdates(i_h_old, i_h_new, i_hu_old, i_hu_new, i_nx - 1, i_ny, i_b,
+               i_scaling, idx, 1);
+    __syncthreads();
+
+    netUpdates(i_h_old, i_h_new, i_hv_old, i_hv_new, i_nx, i_ny - 1, i_b,
+               i_scaling, idx, i_nx);
+    __syncthreads();
+  }
+  printf("%f, %d\n", i_h_old[idx], idx);
 }
 
 int main() {
-  int N = 128;
-  int iteration = 4;
-  int size = 16;
-  int i_nx = 4;
-  int i_ny = 4;
-  float scaling = 0.5;
+  int N = 1;
+  int iteration = 1;
+  int size = 64;
+  int i_nx = std::sqrt(size);
+  int i_ny = std::sqrt(size);
+  float scaling = 0.001;
   float *h_host, *hu_host, *hv_host, *h_dev_new, *h_dev_old, *hu_dev_new,
       *hu_dev_old, *hv_dev_new, *hv_dev_old, *b_host, *b_dev;
   h_host = (float *)malloc(size * sizeof(float));
@@ -120,10 +161,10 @@ int main() {
   cudaMalloc((void **)&b_dev, size * sizeof(float));
 
   for (int i = 0; i < size; i++) {
-    h_host[i] = i;
-    hu_host[i] = i;
-    hv_host[i] = i;
-    b_host[i] = 0;
+    h_host[i] = i + 1;
+    hu_host[i] = 1;
+    hv_host[i] = 1;
+    b_host[i] = 1;
   }
 
   cudaMemcpy(h_dev_old, h_host, size * sizeof(float), cudaMemcpyHostToDevice);
@@ -132,14 +173,15 @@ int main() {
   cudaMemcpy(b_dev, b_host, size * sizeof(float), cudaMemcpyHostToDevice);
 
   cudaError_t err = cudaGetLastError();
-  dim3 threadsPerBlock(i_nx, i_ny);
-  //  for (int i = 0; i < N / iteration; i++) {
-  WavePropagation2d<<<1, threadsPerBlock>>>(
-      h_dev_old, h_dev_new, hu_dev_old, hu_dev_new, hv_dev_old, hv_dev_new,
-      i_nx, i_ny, b_dev, iteration, scaling);
+  dim3 threadsPerBlock(4, 4);
+  dim3 BlocksPerGrid(i_nx / 4, i_ny / 4);
+  for (int i = 0; i < N / iteration; i++) {
+    WavePropagation2d<<<BlocksPerGrid, threadsPerBlock>>>(
+        h_dev_old, h_dev_new, hu_dev_old, hu_dev_new, hv_dev_old, hv_dev_new,
+        i_nx, i_ny, b_dev, iteration, scaling);
 
-  cudaDeviceSynchronize();
-  //}
+    cudaDeviceSynchronize();
+  }
   cudaMemcpy(h_host, h_dev_old, size * sizeof(float), cudaMemcpyDeviceToHost);
   cudaMemcpy(hu_host, hu_dev_old, size * sizeof(float), cudaMemcpyDeviceToHost);
   cudaMemcpy(hv_host, hv_dev_old, size * sizeof(float), cudaMemcpyDeviceToHost);
@@ -157,6 +199,8 @@ int main() {
   cudaFree(h_dev_old);
   cudaFree(hu_dev_new);
   cudaFree(hu_dev_old);
+  cudaFree(hv_dev_new);
+  cudaFree(hv_dev_old);
   cudaFree(b_dev);
 
   return 0;
