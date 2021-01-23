@@ -5,10 +5,9 @@
 __device__ void netUpdates(float *i_height_old, float *i_height_new,
                            float *i_momentum_old, float *i_momentum_new,
                            int i_nx, int i_ny, float *i_b, float i_scaling) {
-  int scaling = 4;
   int l_i = blockIdx.x * blockDim.x + threadIdx.x;
   int l_j = blockIdx.y * blockDim.y + threadIdx.y;
-  int idx = l_i * scaling + l_j;
+  int idx = l_i * i_nx + l_j;
 
   int i_displ = 1;
   float m_gSqrt = sqrtf(9.812);
@@ -85,19 +84,23 @@ __device__ void netUpdates(float *i_height_old, float *i_height_new,
 
 __global__ void WavePropagation2d(float *i_h_old, float *i_h_new,
                                   float *i_hu_old, float *i_hu_new,
-                                  float *i_hv_new, float *i_hv_old, int i_nx,
+                                  float *i_hv_old, float *i_hv_new, int i_nx,
                                   int i_ny, float *i_b, int i_iter,
                                   float i_scaling) {
-  for (int i = 0; i < i_iter; ++i) {
-    netUpdates(i_h_old, i_h_new, i_hu_old, i_hu_new, i_nx, i_ny, i_b,
-               i_scaling);
-    __syncthreads();
-  }
+  int l_i = blockIdx.x * blockDim.x + threadIdx.x;
+  int l_j = blockIdx.y * blockDim.y + threadIdx.y;
+  int idx = l_i * i_nx + l_j;
+  // printf("%f\n", i_h_old[idx]);
+  // for (int i = 0; i < i_iter; ++i) {
+  netUpdates(i_h_old, i_h_new, i_hu_old, i_hu_new, i_nx, i_ny, i_b, i_scaling);
+  __syncthreads();
+  //}
+  printf("%f\n", i_h_old[idx]);
 }
 
 int main() {
   int N = 128;
-  int iteration = 32;
+  int iteration = 4;
   int size = 16;
   int i_nx = 4;
   int i_ny = 4;
@@ -106,7 +109,7 @@ int main() {
       *hu_dev_old, *hv_dev_new, *hv_dev_old, *b_host, *b_dev;
   h_host = (float *)malloc(size * sizeof(float));
   hu_host = (float *)malloc(size * sizeof(float));
-  hu_host = (float *)malloc(size * sizeof(float));
+  hv_host = (float *)malloc(size * sizeof(float));
   b_host = (float *)malloc(size * sizeof(float));
   cudaMalloc((void **)&h_dev_old, size * sizeof(float));
   cudaMalloc((void **)&h_dev_new, size * sizeof(float));
@@ -130,17 +133,17 @@ int main() {
 
   cudaError_t err = cudaGetLastError();
   dim3 threadsPerBlock(i_nx, i_ny);
-  for (int i = 0; i < N / iteration; i++) {
-    WavePropagation2d<<<1, threadsPerBlock>>>(
-        h_dev_old, h_dev_new, hu_dev_old, hu_dev_new, hv_dev_new, hv_dev_old,
-        i_nx, i_ny, b_dev, iteration, scaling);
+  //  for (int i = 0; i < N / iteration; i++) {
+  WavePropagation2d<<<1, threadsPerBlock>>>(
+      h_dev_old, h_dev_new, hu_dev_old, hu_dev_new, hv_dev_old, hv_dev_new,
+      i_nx, i_ny, b_dev, iteration, scaling);
 
-    cudaDeviceSynchronize();
-  }
+  cudaDeviceSynchronize();
+  //}
   cudaMemcpy(h_host, h_dev_old, size * sizeof(float), cudaMemcpyDeviceToHost);
   cudaMemcpy(hu_host, hu_dev_old, size * sizeof(float), cudaMemcpyDeviceToHost);
   cudaMemcpy(hv_host, hv_dev_old, size * sizeof(float), cudaMemcpyDeviceToHost);
-
+  // std::cout << h_host[4] << '\n';
   //
   // for (int i = 0; i < size; i++) {
   //   std::cout << h_host[i] << '\n';
