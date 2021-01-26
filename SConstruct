@@ -41,12 +41,28 @@ if vars.UnknownVariables():
   print( "build configuration corrupted, don't know what to do with: " + str(vars.UnknownVariables().keys()) )
   exit(1)
 
+
 # create environment
-env = Environment(CXX = 'g++',
+import os
+env = Environment(ENV = os.environ,
+                    CXX = 'g++',
                     variables = vars )
 
 # generate help message
 Help( vars.GenerateHelpText( env ) )
+
+# direct SCons to the nvcc tool
+env.Tool('nvcc', toolpath = [os.getcwd()])
+
+# add the CUDA SDK include path to the CPPPATH
+env.Append(CPPPATH = ['/cluster/nvidia/cuda/11/targets/x86_64-linux/include'])
+
+# add the CUDA library paths to the LIBPATH
+env.Append(LIBPATH  = ['/cluster/nvidia/cuda/11/targets/x86_64-linux/lib',
+                       '/lib64'])
+
+# link to glut, glew, the cuda runtime, and the cuda utility libraries
+env.Append(LIBS = ['cudart'])
 
 # add default flags
 env.Append( CXXFLAGS = [ '-std=c++11',
@@ -57,6 +73,7 @@ env.Append( CXXFLAGS = [ '-std=c++11',
                          '-lnetcdf',
                          '-fopenmp' ] )
 env.Append( LINKFLAGS = ['-fopenmp'])
+env.Append( LIBS=File('/home/mi48peh/software/lib/libnetcdf.so'))
 
 # set optimization mode
 if 'debug' in env['mode']:
@@ -89,9 +106,9 @@ VariantDir( variant_dir = 'build/src',
 env.sources = []
 env.tests = []
 
-conf = Configure(env)
-if not conf.CheckLib('netcdf'):
-    Exit('can not find netcdf')
+#conf = Configure(env)
+#if not conf.CheckLib('netcdf'):
+#    Exit('can not find netcdf')
 
 
 Export('env')

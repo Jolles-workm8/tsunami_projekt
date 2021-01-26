@@ -5,3 +5,4 @@ latex/
 Doxyfile
 config.log
 .sconf_temp/
+solver.nc
