@@ -76,7 +76,11 @@ tsunami_lab::patches::WavePropagation2d::~WavePropagation2d() {
   }
 }
 
-void tsunami_lab::patches::WavePropagation2d::timeStep(t_real i_scaling) {
+void tsunami_lab::patches::WavePropagation2d::timeStep(t_real i_scaling, t_idx computeSteps) {
+
+  setGhostOutflow();
+
+  for(t_idx l_computations = 0; l_computations < computeSteps; l_computations++){
   // pointers to old and new data
   t_real *l_hOld = m_h[m_step];
   t_real *l_huOld = m_hu[m_step];
@@ -162,7 +166,7 @@ void tsunami_lab::patches::WavePropagation2d::timeStep(t_real i_scaling) {
       l_hvNew[l_ceT] -= i_scaling * l_netUpdates[1][1];
     }
   }
-
+  }
 }
 
 void tsunami_lab::patches::WavePropagation2d::setGhostOutflow() {

@@ -23,7 +23,8 @@ l_sources = [ 'solvers/fwave.cpp',
               'setups/ArtificialTsunami.cpp',
               'setups/TsunamiEvent.cpp',
               'io/NetCdf.cpp',
-              'cuda/cuda_solver.cu']
+              'patches/cuda_WavePropagation2d.cu',
+              ]
 
 for l_so in l_sources:
   env.sources.append( env.Object( l_so ) )

@@ -49,6 +49,7 @@ int main(int i_argc, char *i_argv[]) {
   tsunami_lab::t_idx l_nx = 0;
   tsunami_lab::t_idx l_ny = 0;
   tsunami_lab::t_idx l_rescaleFactor = 1;
+  tsunami_lab::t_idx l_computeSteps = 10;
 
   // set cell size
   tsunami_lab::t_real l_dxy = 1;
@@ -169,22 +170,21 @@ int main(int i_argc, char *i_argv[]) {
   // iterate over time
   double elapsed_total = 0;
   while (l_simTime < l_endTime) {
-    if (l_timeStep % 25 == 0) {
-      std::cout << "  simulation time / #time steps: " << l_simTime << " / "
+    
+    std::cout << "  simulation time / #time steps: " << l_simTime << " / "
                 << l_timeStep << std::endl;
 
-      l_netcdf->write(l_waveProp->getStride(), l_waveProp->getHeight(),
+    l_netcdf->write(l_waveProp->getStride(), l_waveProp->getHeight(),
                       l_waveProp->getMomentumX(), l_waveProp->getMomentumY(),
                       l_timeStep / 25, l_simTime);
-    }
-    l_waveProp->setGhostOutflow();
+    
 
     start = system_clock::now();
-    l_waveProp->timeStep(l_scaling);
+    l_waveProp->timeStep(l_scaling, l_computeSteps);
     end = system_clock::now();
     elapsed_total += duration<double>(end - start).count();
     l_timeStep++;
-    l_simTime += l_dt;
+    l_simTime += l_dt * l_computeSteps;
   }
 
   const double elapsed_cell = elapsed_total / (l_timeStep * (l_nx * l_ny));

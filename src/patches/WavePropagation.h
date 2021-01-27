@@ -51,13 +51,8 @@ class tsunami_lab::patches::WavePropagation {
    *
    * @param i_scaling scaling of the time step.
    **/
-  virtual void timeStep(t_real i_scaling) = 0;
+  virtual void timeStep(t_real i_scaling, t_idx i_computeSteps) = 0;
 
-  /**
-   * Sets the values of the ghost cells according to outflow boundary
-   *conditions.
-   **/
-  virtual void setGhostOutflow() = 0;
 
   /**
    * Gets the stride in y-direction. x-direction is stride-1.
