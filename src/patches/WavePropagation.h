@@ -133,6 +133,9 @@ class tsunami_lab::patches::WavePropagation {
    * @param i_reflR reflection of the right ghost cell.
    **/
   virtual void setReflection(t_idx i_iy, bool i_reflL, bool i_reflR) = 0;
+
+  virtual void MemTransfer() = 0;
+
 };
 
 #endif

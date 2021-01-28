@@ -115,8 +115,8 @@ tsunami_lab::io::NetCdf::NetCdf(t_idx i_nx, t_idx i_rescaleFactor, const char *b
   /// Prepare writing data into a file ///
   ///////////////////////////////////////
 
-  l_nx_out = (int)(l_nx / rescaleFactor);
-  l_ny_out = (int)(l_ny / rescaleFactor);
+  l_nx_out = (t_idx)(l_nx / rescaleFactor);
+  l_ny_out = (t_idx)(l_ny / rescaleFactor);
   int x_dim, y_dim, time_dim;
 
   if ((retval = nc_create("solver.nc", NC_CLOBBER, &ncid))) ERR(retval);

@@ -73,7 +73,9 @@ env.Append( CXXFLAGS = [ '-std=c++11',
                          '-lnetcdf',
                          '-fopenmp' ] )
 env.Append( LINKFLAGS = ['-fopenmp'])
-env.Append( LIBS=File('/home/mi48peh/software/lib/libnetcdf.so'))
+
+env.Append( LIBS=File('/home/su72mej/software/lib/libnetcdf.so'))
+
 
 # set optimization mode
 if 'debug' in env['mode']:

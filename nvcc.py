@@ -78,10 +78,10 @@ def generate(env):
   # CUDA files here, such as .gpu, etc.
 
   # XXX intelligently detect location of nvcc here
-  exe_path = '/usr/local/cuda/bin'
+  exe_path = '/cluster/nvidia/cuda/11/bin'
 
   # XXX intelligently detect location of cuda libraries here
-  lib_path = '/usr/local/cuda/lib'
+  lib_path = '/cluster/nvidia/cuda/11/targets/x86_64-linux/lib'
 
   env.PrependENVPath('PATH', exe_path)
 

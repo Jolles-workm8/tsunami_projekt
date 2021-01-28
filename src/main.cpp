@@ -41,6 +41,7 @@
 
 #include "io/NetCdf.h"
 #include "patches/WavePropagation2d.h"
+#include "patches/cuda_WavePropagation2d.h"
 #include "setups/ArtificialTsunami.h"
 #include "setups/TsunamiEvent.h"
 
@@ -49,7 +50,7 @@ int main(int i_argc, char *i_argv[]) {
   tsunami_lab::t_idx l_nx = 0;
   tsunami_lab::t_idx l_ny = 0;
   tsunami_lab::t_idx l_rescaleFactor = 1;
-  tsunami_lab::t_idx l_computeSteps = 10;
+  tsunami_lab::t_idx l_computeSteps = 1;
 
   // set cell size
   tsunami_lab::t_real l_dxy = 1;
@@ -101,7 +102,7 @@ int main(int i_argc, char *i_argv[]) {
 
   // construct solver
   tsunami_lab::patches::WavePropagation *l_waveProp;
-  l_waveProp = new tsunami_lab::patches::WavePropagation2d(l_nx, l_ny);
+  l_waveProp = new tsunami_lab::patches::cuda_WavePropagation2d(l_nx, l_ny);
 
   // maximum observed height in the setup
   tsunami_lab::t_real l_hMax =
@@ -143,6 +144,8 @@ int main(int i_argc, char *i_argv[]) {
     }
   }
 
+  l_waveProp->MemTransfer();
+
   auto end = system_clock::now();
 
   const double elapsed_io = duration<double>(end - start).count();
@@ -150,7 +153,7 @@ int main(int i_argc, char *i_argv[]) {
   std::cout << "seconds needed to read data from files:" << elapsed_io << '\n';
   // set up time and print control
   tsunami_lab::t_idx l_timeStep = 0;
-  tsunami_lab::t_real l_endTime = 2000;
+  tsunami_lab::t_real l_endTime = 100;
   tsunami_lab::t_real l_simTime = 0;
 
   // initialize the timescaling the momentum is ignored in the first step
@@ -173,10 +176,10 @@ int main(int i_argc, char *i_argv[]) {
     
     std::cout << "  simulation time / #time steps: " << l_simTime << " / "
                 << l_timeStep << std::endl;
-
+ 
     l_netcdf->write(l_waveProp->getStride(), l_waveProp->getHeight(),
                       l_waveProp->getMomentumX(), l_waveProp->getMomentumY(),
-                      l_timeStep / 25, l_simTime);
+                      l_timeStep, l_simTime);
     
 
     start = system_clock::now();

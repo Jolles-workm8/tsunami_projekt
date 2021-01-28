@@ -196,6 +196,8 @@ class tsunami_lab::patches::WavePropagation2d : public WavePropagation {
     m_reflBoundL = i_reflL;
     m_reflBoundR = i_reflR;
   }
+
+  void MemTransfer(){}
 };
 
 #endif

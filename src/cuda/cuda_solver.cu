@@ -136,7 +136,7 @@ __global__ void WavePropagation2d(float *i_h_old, float *i_h_new,
                i_scaling, idx, i_nx);
     __syncthreads();
   }
-  //printf("%f, %d\n", i_h_old[idx], idx);
+  // printf("%f, %d\n", i_h_old[idx], idx);
 }
 
 void cudaWaveProp() {
@@ -202,5 +202,4 @@ void cudaWaveProp() {
   cudaFree(hv_dev_new);
   cudaFree(hv_dev_old);
   cudaFree(b_dev);
-
 }

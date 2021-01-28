@@ -1,25 +1,27 @@
-#include "cuda_WavePropagation2d.cuh"
+#include "cuda_WavePropagation2d.h"
+#include "cuda_functions.cuh"
 //#include "cuda_solver.cuh"
 #include <iostream>
+#include <cuda.h>
 
-tsunami_lab::patches::cuda_WavePropagation2d::cuda_WavePropagation2d(t_idx i_xCells,t_idx i_yCells){
-  
-  //set number of cells without GhostCells in x and y Direction
+tsunami_lab::patches::cuda_WavePropagation2d::cuda_WavePropagation2d(
+    t_idx i_xCells, t_idx i_yCells) {
+  // set number of cells without GhostCells in x and y Direction
   m_xCells = i_xCells;
   m_yCells = i_yCells;
 
-  t_idx size = (m_xCells +2)* (m_yCells+2);
+  size = (m_xCells + 2) * (m_yCells + 2);
   // allocate memory including ghostcells on each side
   m_h = (float *)malloc(size * sizeof(float));
   m_hu = (float *)malloc(size * sizeof(float));
   m_hv = (float *)malloc(size * sizeof(float));
   m_b = (float *)malloc(size * sizeof(float));
 
-  //init to zero
-  for(unsigned long l_ceY = 0; l_ceY < (m_yCells + 2); l_ceY++) {
+  // init to zero
+  for (unsigned long l_ceY = 0; l_ceY < (m_yCells + 2); l_ceY++) {
     for (unsigned long l_ceX = 0; l_ceX < (m_xCells + 2); l_ceX++) {
-      unsigned long l_ce = l_ceX+l_ceY*(m_xCells+2);
-      m_b[l_ce] = 0;     
+      unsigned long l_ce = l_ceX + l_ceY * (m_xCells + 2);
+      m_b[l_ce] = 0;
       m_h[l_ce] = 0;
       m_hu[l_ce] = 0;
       m_hv[l_ce] = 0;
@@ -33,19 +35,17 @@ tsunami_lab::patches::cuda_WavePropagation2d::cuda_WavePropagation2d(t_idx i_xCe
   cudaMalloc((void **)&hu_dev_new, size * sizeof(float));
   cudaMalloc((void **)&hv_dev_old, size * sizeof(float));
   cudaMalloc((void **)&hv_dev_new, size * sizeof(float));
-  cudaMalloc((void **)&b_dev, size * sizeof(float));  
-  
+  cudaMalloc((void **)&b_dev, size * sizeof(float));
 }
 
-tsunami_lab::patches::cuda_WavePropagation2d::~cuda_WavePropagation2d(){
-  //free memory on CPU
+tsunami_lab::patches::cuda_WavePropagation2d::~cuda_WavePropagation2d() {
+  // free memory on CPU
   free(m_h);
   free(m_hu);
   free(m_hv);
   free(m_b);
 
-
-  //free memory on GPU
+  // free memory on GPU
   cudaFree(h_dev_new);
   cudaFree(h_dev_old);
   cudaFree(hu_dev_new);
@@ -53,18 +53,24 @@ tsunami_lab::patches::cuda_WavePropagation2d::~cuda_WavePropagation2d(){
   cudaFree(hv_dev_new);
   cudaFree(hv_dev_old);
   cudaFree(b_dev);
-  
 }
+void tsunami_lab::patches::cuda_WavePropagation2d::MemTransfer() {
+  cudaMemcpy(h_dev_old, m_h, size * sizeof(float), cudaMemcpyHostToDevice);
+  cudaMemcpy(hu_dev_old, m_hu, size * sizeof(float), cudaMemcpyHostToDevice);
+  cudaMemcpy(hv_dev_old, m_hv, size * sizeof(float), cudaMemcpyHostToDevice);
+  cudaMemcpy(b_dev, m_b, size * sizeof(float), cudaMemcpyHostToDevice);
+}
+void tsunami_lab::patches::cuda_WavePropagation2d::timeStep(
+    t_real i_scaling, t_idx i_computeSteps) {
+  t_idx l_nx = m_xCells + 2;
+  t_idx l_ny = m_yCells + 2;
 
-void tsunami_lab::patches::cuda_WavePropagation2d::timeStep(t_real i_scaling, t_idx i_computeSteps){
-  t_idx l_nx = m_xCells+2;
-  t_idx l_ny = m_yCells+2;
-  t_idx size = l_nx * l_ny; 
   dim3 threadsPerBlock(4, 4);
   dim3 BlocksPerGrid(l_nx / 4, l_ny / 4);
+
   solverInit<<<BlocksPerGrid, threadsPerBlock>>>(
-    h_dev_old, h_dev_new, hu_dev_old, hu_dev_new, hv_dev_old, hv_dev_new,
-    l_nx, l_ny, b_dev, i_computeSteps, i_scaling);
+      h_dev_old, h_dev_new, hu_dev_old, hu_dev_new, hv_dev_old, hv_dev_new,
+      l_nx, l_ny, b_dev, i_computeSteps, i_scaling);
 
   cudaDeviceSynchronize();
 
@@ -73,11 +79,10 @@ void tsunami_lab::patches::cuda_WavePropagation2d::timeStep(t_real i_scaling, t_
   cudaMemcpy(m_hv, hv_dev_old, size * sizeof(float), cudaMemcpyDeviceToHost);
 }
 
-__global__ void solverInit(float *i_h_old, float *i_h_new,
-                                  float *i_hu_old, float *i_hu_new,
-                                  float *i_hv_old, float *i_hv_new, int i_nx,
-                                  int i_ny, float *i_b, int i_iter,
-                                  float i_scaling) {
+__global__ void solverInit(float *i_h_old, float *i_h_new, float *i_hu_old,
+                           float *i_hu_new, float *i_hv_old, float *i_hv_new,
+                           int i_nx, int i_ny, float *i_b, int i_iter,
+                           float i_scaling) {
   int l_i = blockIdx.x * blockDim.x + threadIdx.x;
   int l_j = blockIdx.y * blockDim.y + threadIdx.y;
   int idx = l_i + l_j * i_nx;
@@ -100,31 +105,33 @@ __device__ void setGhostOutflow(float *i_height, float *i_hu, float *i_hv,
   int l_i = blockIdx.x * blockDim.x + threadIdx.x;
   int l_j = blockIdx.y * blockDim.y + threadIdx.y;
   int idx = l_i + l_j * i_nx;
+  
+  if (l_i < i_nx && l_j < i_ny){
+    if (l_j == 0) {
+      i_height[idx] = i_height[idx + i_nx];
+      i_hu[idx] = i_hu[idx + i_nx];
+      i_hv[idx] = i_hv[idx + i_nx];
+      i_b[idx] = i_b[idx + i_nx];
+    } else if (l_j == i_nx - 1) {
+      i_height[idx] = i_height[idx - i_nx];
+      i_hu[idx] = i_hu[idx - i_nx];
+      i_hv[idx] = i_hv[idx - i_nx];
+      i_b[idx] = i_b[idx - i_nx];
+    }
 
-  if (l_j == 0) {
-    i_height[idx] = i_height[idx + i_nx];
-    i_hu[idx] = i_hu[idx + i_nx];
-    i_hv[idx] = i_hv[idx + i_nx];
-    i_b[idx] = i_b[idx + i_nx];
-  } else if (l_j == i_nx - 1) {
-    i_height[idx] = i_height[idx - i_nx];
-    i_hu[idx] = i_hu[idx - i_nx];
-    i_hv[idx] = i_hv[idx - i_nx];
-    i_b[idx] = i_b[idx - i_nx];
-  }
+    __syncthreads();
 
-  __syncthreads();
-
-  if (l_i == 0) {
-    i_height[idx] = i_height[idx + 1];
-    i_hu[idx] = i_hu[idx + 1];
-    i_hv[idx] = i_hv[idx + 1];
-    i_b[idx] = i_b[idx + 1];
-  } else if (l_i == i_ny - 1) {
-    i_height[idx] = i_height[idx - 1];
-    i_hu[idx] = i_hu[idx - 1];
-    i_hv[idx] = i_hv[idx - 1];
-    i_b[idx] = i_b[idx - 1];
+    if (l_i == 0) {
+      i_height[idx] = i_height[idx + 1];
+      i_hu[idx] = i_hu[idx + 1];
+      i_hv[idx] = i_hv[idx + 1];
+      i_b[idx] = i_b[idx + 1];
+    } else if (l_i == i_ny - 1) {
+      i_height[idx] = i_height[idx - 1];
+      i_hu[idx] = i_hu[idx - 1];
+      i_hv[idx] = i_hv[idx - 1];
+      i_b[idx] = i_b[idx - 1];
+    }
   }
 }
 
@@ -141,7 +148,7 @@ __device__ void netUpdates(float *i_height_old, float *i_height_new,
   i_height_new[idx] = i_height_old[idx];
   i_momentum_new[idx] = i_momentum_old[idx];
 
-  if (l_i < i_nx && l_j < i_ny) {
+  if (l_i < i_nx-1 && l_j < i_ny-1) {
     // compute u for left and right
     float l_uL = i_momentum_old[idx] / i_height_old[idx];
     float l_uR = i_momentum_old[idx + i_stride] / i_height_old[idx + i_stride];
@@ -208,7 +215,3 @@ __device__ void netUpdates(float *i_height_old, float *i_height_new,
   i_height_old[idx] = i_height_new[idx];
   i_momentum_old[idx] = i_momentum_new[idx];
 }
-
-
-
-
