@@ -153,7 +153,7 @@ int main(int i_argc, char *i_argv[]) {
   std::cout << "seconds needed to read data from files:" << elapsed_io << '\n';
   // set up time and print control
   tsunami_lab::t_idx l_timeStep = 0;
-  tsunami_lab::t_real l_endTime = 100;
+  tsunami_lab::t_real l_endTime = 2000;
   tsunami_lab::t_real l_simTime = 0;
 
   // initialize the timescaling the momentum is ignored in the first step
@@ -188,6 +188,7 @@ int main(int i_argc, char *i_argv[]) {
     elapsed_total += duration<double>(end - start).count();
     l_timeStep++;
     l_simTime += l_dt * l_computeSteps;
+    std::cout << l_simTime << std::endl;
   }
 
   const double elapsed_cell = elapsed_total / (l_timeStep * (l_nx * l_ny));

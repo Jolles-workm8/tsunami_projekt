@@ -3,6 +3,9 @@
 //#include "cuda_solver.cuh"
 #include <iostream>
 #include <cuda.h>
+#include <cooperative_groups.h>
+using namespace cooperative_groups;
+
 
 tsunami_lab::patches::cuda_WavePropagation2d::cuda_WavePropagation2d(
     t_idx i_xCells, t_idx i_yCells) {
@@ -29,12 +32,13 @@ tsunami_lab::patches::cuda_WavePropagation2d::cuda_WavePropagation2d(
   }
 
   // allocate memory on GPU
-  cudaMalloc((void **)&h_dev_old, size * sizeof(float));
-  cudaMalloc((void **)&h_dev_new, size * sizeof(float));
-  cudaMalloc((void **)&hu_dev_old, size * sizeof(float));
-  cudaMalloc((void **)&hu_dev_new, size * sizeof(float));
-  cudaMalloc((void **)&hv_dev_old, size * sizeof(float));
-  cudaMalloc((void **)&hv_dev_new, size * sizeof(float));
+  cudaMalloc((void **)&h_dev, size * sizeof(float));
+  cudaMalloc((void **)&h_dev_UpdateL, size * sizeof(float));
+  cudaMalloc((void **)&h_dev_UpdateR, size * sizeof(float));
+  cudaMalloc((void **)&hu_dev, size * sizeof(float));
+  cudaMalloc((void **)&hu_dev_UpdateL, size * sizeof(float));
+  cudaMalloc((void **)&hu_dev_UpdateR, size * sizeof(float));
+  cudaMalloc((void **)&hv_dev, size * sizeof(float));
   cudaMalloc((void **)&b_dev, size * sizeof(float));
 }
 
@@ -46,57 +50,122 @@ tsunami_lab::patches::cuda_WavePropagation2d::~cuda_WavePropagation2d() {
   free(m_b);
 
   // free memory on GPU
-  cudaFree(h_dev_new);
-  cudaFree(h_dev_old);
-  cudaFree(hu_dev_new);
-  cudaFree(hu_dev_old);
-  cudaFree(hv_dev_new);
-  cudaFree(hv_dev_old);
+  cudaFree(h_dev);
+  cudaFree(h_dev_UpdateR);
+  cudaFree(h_dev_UpdateL);
+  cudaFree(hu_dev);
+  cudaFree(hu_dev_UpdateR);
+  cudaFree(hu_dev_UpdateL);
+  cudaFree(hv_dev);
   cudaFree(b_dev);
 }
 void tsunami_lab::patches::cuda_WavePropagation2d::MemTransfer() {
-  cudaMemcpy(h_dev_old, m_h, size * sizeof(float), cudaMemcpyHostToDevice);
-  cudaMemcpy(hu_dev_old, m_hu, size * sizeof(float), cudaMemcpyHostToDevice);
-  cudaMemcpy(hv_dev_old, m_hv, size * sizeof(float), cudaMemcpyHostToDevice);
+  cudaMemcpy(h_dev, m_h, size * sizeof(float), cudaMemcpyHostToDevice);
+  cudaMemcpy(hu_dev, m_hu, size * sizeof(float), cudaMemcpyHostToDevice);
+  cudaMemcpy(hv_dev, m_hv, size * sizeof(float), cudaMemcpyHostToDevice);
   cudaMemcpy(b_dev, m_b, size * sizeof(float), cudaMemcpyHostToDevice);
 }
 void tsunami_lab::patches::cuda_WavePropagation2d::timeStep(
     t_real i_scaling, t_idx i_computeSteps) {
+     printf("asfgh");
   t_idx l_nx = m_xCells + 2;
   t_idx l_ny = m_yCells + 2;
 
-  dim3 threadsPerBlock(4, 4);
-  dim3 BlocksPerGrid(l_nx / 4, l_ny / 4);
+  /*
+  dim3 threadsPerBlock(1,1);
+  dim3 BlocksPerGrid(l_nx+1, l_ny+1);
 
   solverInit<<<BlocksPerGrid, threadsPerBlock>>>(
-      h_dev_old, h_dev_new, hu_dev_old, hu_dev_new, hv_dev_old, hv_dev_new,
+      h_dev, h_dev_UpdateR, h_dev_UpdateL, hu_dev, hu_dev_UpdateR, hu_dev_UpdateL, hv_dev,
       l_nx, l_ny, b_dev, i_computeSteps, i_scaling);
+*/
+int supportsCoopLaunch = 0;
+cudaDeviceGetAttribute(&supportsCoopLaunch, cudaDevAttrCooperativeLaunch, 0);
+printf("test %d \n", supportsCoopLaunch);
+if(supportsCoopLaunch){
+
+  
+  /// This will launch a grid that can maximally fill the GPU, on the default stream with kernel arguments
+  int numBlocksPerSm = 0;
+  // Number of threads my_kernel will be launched with
+  int numThreads = 256;
+  cudaDeviceProp deviceProp;
+  cudaGetDeviceProperties(&deviceProp, 0);
+  cudaOccupancyMaxActiveBlocksPerMultiprocessor(&numBlocksPerSm, solverInit, numThreads, 0);
+  // launch
+  void *kernelArgs[] = {h_dev, h_dev_UpdateR, h_dev_UpdateL, hu_dev, hu_dev_UpdateR, hu_dev_UpdateL, hv_dev,
+      &l_nx, &l_ny, b_dev, &i_computeSteps, &i_scaling };
+  dim3 dimBlock(16, 16, 1);
+  dim3 dimGrid(deviceProp.multiProcessorCount*numBlocksPerSm, 1, 1);
+  cudaLaunchCooperativeKernel((void*)solverInit, dimGrid, dimBlock, kernelArgs);
 
   cudaDeviceSynchronize();
 
-  cudaMemcpy(m_h, h_dev_old, size * sizeof(float), cudaMemcpyDeviceToHost);
-  cudaMemcpy(m_hu, hu_dev_old, size * sizeof(float), cudaMemcpyDeviceToHost);
-  cudaMemcpy(m_hv, hv_dev_old, size * sizeof(float), cudaMemcpyDeviceToHost);
+  cudaMemcpy(m_h, h_dev, size * sizeof(float), cudaMemcpyDeviceToHost);
+  cudaMemcpy(m_hu, hu_dev, size * sizeof(float), cudaMemcpyDeviceToHost);
+  cudaMemcpy(m_hv, hv_dev, size * sizeof(float), cudaMemcpyDeviceToHost);
+  
+  } 
 }
 
-__global__ void solverInit(float *i_h_old, float *i_h_new, float *i_hu_old,
-                           float *i_hu_new, float *i_hv_old, float *i_hv_new,
+__global__ void solverInit(float *i_h, float *l_h_UpdateR, float *l_h_UpdateL, float *i_hu,
+                           float *l_hu_UpdateR, float *l_hu_UpdateL, float *i_hv,
                            int i_nx, int i_ny, float *i_b, int i_iter,
                            float i_scaling) {
+  
+  printf("test \n");
+  grid_group g = this_grid();
+  printf("test %d\n", g.is_valid());
+                            
+  for (int i = 0; i < i_iter; ++i) {
+    initUpdatesZero(l_h_UpdateR, l_h_UpdateR, l_hu_UpdateR, l_hu_UpdateL, i_nx, i_ny);
+    setGhostOutflow(i_h, i_hu, i_hv, i_b, i_nx, i_ny);
+    printf("test %d\n", g.is_valid());
+    g.sync();
+     printf("test123\n");
+
+    //x Sweep
+    
+    netUpdates(i_h, l_h_UpdateR, l_h_UpdateR, i_hu, l_hu_UpdateR, l_hu_UpdateL, i_nx - 1, i_ny, i_b,
+               i_scaling, i_nx, 1);
+    g.sync();
+    updateValues(i_h, l_h_UpdateR, l_h_UpdateR, i_hu, l_hu_UpdateR, l_hu_UpdateL, i_nx, i_ny);
+    initUpdatesZero(l_h_UpdateR, l_h_UpdateR, l_hu_UpdateR, l_hu_UpdateL, i_nx, i_ny);
+    g.sync();
+  
+    //y Sweep
+    netUpdates(i_h, l_h_UpdateR, l_h_UpdateR, i_hv, l_hu_UpdateR, l_hu_UpdateL, i_nx, i_ny - 1, i_b,
+               i_scaling, i_nx, i_nx);
+    g.sync();
+    updateValues(i_h, l_h_UpdateR, l_h_UpdateR, i_hv, l_hu_UpdateR, l_hu_UpdateL, i_nx, i_ny);
+    g.sync();
+  }
+}
+
+__device__ void updateValues(float *o_h, float *i_h_UpdateR, float *i_h_UpdateL, float *o_hu,
+                           float *i_hu_UpdateR, float *i_hu_UpdateL, int i_nx, int i_ny){
+  
+  
   int l_i = blockIdx.x * blockDim.x + threadIdx.x;
   int l_j = blockIdx.y * blockDim.y + threadIdx.y;
   int idx = l_i + l_j * i_nx;
-  for (int i = 0; i < i_iter; ++i) {
-    setGhostOutflow(i_h_old, i_hu_old, i_hv_old, i_b, i_nx, i_ny);
-    __syncthreads();
 
-    netUpdates(i_h_old, i_h_new, i_hu_old, i_hu_new, i_nx - 1, i_ny, i_b,
-               i_scaling, idx, 1);
-    __syncthreads();
+  if (l_i < i_nx && l_j < i_ny){
+  o_h[idx] =o_h[idx] + i_h_UpdateR[idx] + i_h_UpdateL[idx];
+  o_hu[idx] =o_hu[idx] + i_hu_UpdateR[idx] + i_hu_UpdateL[idx];      
+  }                   
+}
 
-    netUpdates(i_h_old, i_h_new, i_hv_old, i_hv_new, i_nx, i_ny - 1, i_b,
-               i_scaling, idx, i_nx);
-    __syncthreads();
+__device__ void initUpdatesZero(float *i_h_UpdateR, float *i_h_UpdateL, float *i_hu_UpdateR, float *i_hu_UpdateL, int i_nx, int i_ny){
+  int l_i = blockIdx.x * blockDim.x + threadIdx.x;
+  int l_j = blockIdx.y * blockDim.y + threadIdx.y;
+  int idx = l_i + l_j * i_nx;
+
+  if (l_i < i_nx && l_j < i_ny){
+    i_h_UpdateR[idx] = 0;
+    i_h_UpdateL[idx] = 0;
+    i_hu_UpdateR[idx] = 0;
+    i_hu_UpdateL[idx] = 0;
   }
 }
 
@@ -135,32 +204,46 @@ __device__ void setGhostOutflow(float *i_height, float *i_hu, float *i_hv,
   }
 }
 
-__device__ void netUpdates(float *i_height_old, float *i_height_new,
-                           float *i_momentum_old, float *i_momentum_new,
-                           int i_nx, int i_ny, float *i_b, float i_scaling,
-                           int idx, int i_stride) {
+__device__ void netUpdates(float *i_height, float *o_height_UpdateR, float *o_height_UpdateL,
+                           float *i_momentum, float *o_momentum_UpdateR, float *o_momentum_UpdateL,
+                           int i_xEdges, int i_yEdges, float *i_b, float i_scaling,
+                           int i_nx, int i_stride) {
+  
+  printf("Edges %d and %d\n",i_xEdges, i_yEdges);
   int l_i = blockIdx.x * blockDim.x + threadIdx.x;
   int l_j = blockIdx.y * blockDim.y + threadIdx.y;
+  int idx = l_i + l_j * i_nx;
 
   float m_gSqrt = sqrtf(9.812);
   float m_g = 9.812;
 
-  i_height_new[idx] = i_height_old[idx];
-  i_momentum_new[idx] = i_momentum_old[idx];
-
-  if (l_i < i_nx-1 && l_j < i_ny-1) {
+  if (l_i < i_xEdges && l_j < i_yEdges) {
+    printf("Hello from block %d, thread %d with access to %d and %d and %d and %d \n", l_i, l_j, idx, idx+i_stride, i_xEdges, i_yEdges);
     // compute u for left and right
-    float l_uL = i_momentum_old[idx] / i_height_old[idx];
-    float l_uR = i_momentum_old[idx + i_stride] / i_height_old[idx + i_stride];
+    float l_uL = i_momentum[idx] / i_height[idx];
+    float l_uR = i_momentum[idx + i_stride] / i_height[idx + i_stride];
 
-    float l_hL = i_height_old[idx];
-    float l_hR = i_height_old[idx + i_stride];
+    float l_hL = i_height[idx];
+    float l_hR = i_height[idx + i_stride];
 
-    float l_huL = i_momentum_old[idx];
-    float l_huR = i_momentum_old[idx + i_stride];
+    float l_huL = i_momentum[idx];
+    float l_huR = i_momentum[idx + i_stride];
 
     float l_bL = i_b[idx];
     float l_bR = i_b[idx + i_stride];
+
+    
+    if(l_bL >= 0){
+      l_hL = l_hR;
+      l_huL = l_huR;
+      l_bL = l_bR;
+    }
+    else if(l_bR >= 0){
+      l_hR = l_hL;
+      l_huR = l_huL;
+      l_bR = l_bL;
+    }
+    
 
     // compute WaveSpeed ,
 
@@ -172,6 +255,7 @@ __device__ void netUpdates(float *i_height_old, float *i_height_new,
     l_uRoe /= l_hSqrtL + l_hSqrtR;
 
     float l_ghSqrtRoe = m_gSqrt * sqrtf(l_hRoe);
+
 
     float l_waveSpeedL = l_uRoe - l_ghSqrtRoe;
     float l_waveSpeedR = l_uRoe + l_ghSqrtRoe;
@@ -193,25 +277,31 @@ __device__ void netUpdates(float *i_height_old, float *i_height_new,
     float l_strengthR =
         -i_scaling * l_detInv * (l_fJump_2 - l_waveSpeedL * l_fJump_1);
 
-    __syncthreads();
-
+   
     if (l_waveSpeedL < 0) {
-      atomicAdd(&i_height_new[idx], l_strengthL);
-      atomicAdd(&i_momentum_new[idx], l_strengthL * l_waveSpeedL);
+      o_height_UpdateL[idx] = l_strengthL;
+      o_momentum_UpdateL[idx] = l_strengthL * l_waveSpeedL;
     } else {
-      atomicAdd(&i_height_new[idx + i_stride], l_strengthL);
-      atomicAdd(&i_momentum_new[idx + i_stride], l_strengthL * l_waveSpeedL);
+      o_height_UpdateR[idx + i_stride] = l_strengthL;
+      o_momentum_UpdateR[idx + i_stride] = l_strengthL * l_waveSpeedL;
     }
 
     if (l_waveSpeedR > 0) {
-      atomicAdd(&i_height_new[idx + i_stride], l_strengthR);
-      atomicAdd(&i_momentum_new[idx + i_stride], l_strengthR * l_waveSpeedR);
+      o_height_UpdateR[idx + i_stride] = l_strengthR;
+      o_momentum_UpdateR[idx + i_stride] = l_strengthR * l_waveSpeedR;
+
     } else {
-      atomicAdd(&i_height_new[idx], l_strengthR);
-      atomicAdd(&i_momentum_new[idx], l_strengthR * l_waveSpeedR);
+      o_height_UpdateL[idx] = l_strengthR;
+      o_momentum_UpdateL[idx] = l_strengthR * l_waveSpeedR;
     }
-    __syncthreads();
+
+    if(i_b[idx] >= 0){
+    o_height_UpdateL[idx] = 0;
+    o_momentum_UpdateL[idx] = 0;
+    }
+    if(i_b[idx + i_stride] >= 0){
+    o_height_UpdateR[idx + i_stride] = 0;
+    o_momentum_UpdateR[idx + i_stride] = 0;
+    }
   }
-  i_height_old[idx] = i_height_new[idx];
-  i_momentum_old[idx] = i_momentum_new[idx];
 }

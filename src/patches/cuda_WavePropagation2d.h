@@ -20,12 +20,14 @@ class tsunami_lab::patches::cuda_WavePropagation2d : public WavePropagation {
   t_real *m_hv;
   t_real *m_hu;
   t_real *m_b;
-  t_real *h_dev_new;
-  t_real *h_dev_old;
-  t_real *hu_dev_new;
-  t_real *hu_dev_old;
-  t_real *hv_dev_new;
-  t_real *hv_dev_old;
+  
+  t_real *h_dev;
+  t_real *h_dev_UpdateR;
+  t_real *h_dev_UpdateL;
+  t_real *hu_dev;
+  t_real *hu_dev_UpdateR;
+  t_real *hu_dev_UpdateL;
+  t_real *hv_dev;
   t_real *b_dev;
 
   bool m_reflBoundL;

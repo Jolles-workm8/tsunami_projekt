@@ -313,8 +313,8 @@ tsunami_lab::t_real tsunami_lab::io::NetCdf::read_bathymetry(t_idx i_x,
   t_real o_pos_x;
   t_real o_pos_y;
   getCellPos(i_x, i_y, o_pos_x, o_pos_y);
-  index[1] = (size_t)(((o_pos_x- l_bath_min_value_x)/l_bath_cellsize)+0.5);
-  index[0] = (size_t)(((o_pos_y- l_bath_min_value_y)/l_bath_cellsize)+0.5);
+  index[1] = (size_t)(((o_pos_x- l_bath_min_value_x)/l_bath_cellsize));
+  index[0] = (size_t)(((o_pos_y- l_bath_min_value_y)/l_bath_cellsize));
   if ((retval = nc_get_var1_float(r_bath_ncid, r_bath_z_varid, index,
                                   &bath_return_value)))
     ERR(retval);
