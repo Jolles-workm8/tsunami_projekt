@@ -153,7 +153,7 @@ int main(int i_argc, char *i_argv[]) {
   std::cout << "seconds needed to read data from files:" << elapsed_io << '\n';
   // set up time and print control
   tsunami_lab::t_idx l_timeStep = 0;
-  tsunami_lab::t_real l_endTime = 100;
+  tsunami_lab::t_real l_endTime = 1000;
   tsunami_lab::t_real l_simTime = 0;
 
   // initialize the timescaling the momentum is ignored in the first step

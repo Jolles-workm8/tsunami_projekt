@@ -162,6 +162,19 @@ __device__ void netUpdates(float *i_height_old, float *i_height_new,
     float l_bL = i_b[idx];
     float l_bR = i_b[idx + i_stride];
 
+
+    if(l_bL >= 0){
+      l_hL = l_hR;
+      l_huL = l_huR;
+      l_bL = l_bR;
+    }
+    else if(l_bR >= 0){
+      l_hR = l_hL;
+      l_huR = l_huL;
+      l_bR = l_bL;
+    }
+
+
     // compute WaveSpeed ,
 
     float l_hSqrtL = sqrtf(l_hL);
@@ -193,6 +206,14 @@ __device__ void netUpdates(float *i_height_old, float *i_height_new,
     float l_strengthR =
         -i_scaling * l_detInv * (l_fJump_2 - l_waveSpeedL * l_fJump_1);
 
+    if(i_b[idx] >= 0){
+    l_strengthL = 0;
+    l_strengthR = 0;
+    }
+    if(i_b[idx + i_stride] >= 0){
+    l_strengthL = 0;
+    l_strengthR = 0;
+    }
     __syncthreads();
 
     if (l_waveSpeedL < 0) {
