@@ -39,17 +39,19 @@
 #include <iostream>
 #include <limits>
 
-#include "io/NetCdf.h"
+#include "io/NetCdf_Read.h"
+#include "io/NetCdf_Write.h"
 #include "patches/WavePropagation2d.h"
 #include "patches/cuda_WavePropagation2d.h"
-#include "setups/ArtificialTsunami.h"
+//#include "setups/ArtificialTsunami.h"
 #include "setups/TsunamiEvent.h"
 
 int main(int i_argc, char *i_argv[]) {
   // number of cells in x- and y-direction. Default for y-dimension is 1.
   tsunami_lab::t_idx l_nx = 0;
   tsunami_lab::t_idx l_ny = 0;
-  tsunami_lab::t_idx l_rescaleFactor = 1;
+  tsunami_lab::t_idx l_rescaleFactor_input = 1;
+  tsunami_lab::t_idx l_rescaleFactor_output = 1;
   tsunami_lab::t_idx l_computeSteps = 1;
 
   // set cell size
@@ -69,40 +71,43 @@ int main(int i_argc, char *i_argv[]) {
               << std::endl;
     return EXIT_FAILURE;
   } else {
-    l_nx = atoi(i_argv[1]);
-    if (l_nx < 1) {
-      std::cerr << "invalid number of cells" << std::endl;
+    l_rescaleFactor_input = atoi(i_argv[1]);
+    if (l_rescaleFactor_input < 1) {
+      std::cerr << "invalid input rescaleFactor" << std::endl;
       return EXIT_FAILURE;
     }
 
-    l_rescaleFactor = atoi(i_argv[2]);
-    if (l_nx < 1) {
+    l_rescaleFactor_output = atoi(i_argv[2]);
+    if (l_rescaleFactor_output < 1) {
       std::cerr << "invalid output rescaleFactor" << std::endl;
       return EXIT_FAILURE;
     }
   }
 
-  std::cout << "runtime configuration" << std::endl;
-  std::cout << "  number of cells in x-direction: " << l_nx << std::endl;
-
   // construct NetCdf-reader
-  tsunami_lab::io::NetCdf *l_netcdf;
-  l_netcdf = new tsunami_lab::io::NetCdf(l_nx, l_rescaleFactor, "bathymetry_data.nc",
+  tsunami_lab::io::NetCdf_Read *l_netcdf_read;
+  l_netcdf_read = new tsunami_lab::io::NetCdf_Read(l_rescaleFactor_input, "bathymetry_data.nc",
                                          "displacement_data.nc");
 
-  l_ny = l_netcdf->get_amount_y();
-  l_dxy = l_netcdf->get_dxy();
+  l_nx = l_netcdf_read->get_nx();
+  l_ny = l_netcdf_read->get_ny();
+  l_dxy = l_netcdf_read->get_dxy();
 
+  std::cout << "runtime configuration" << std::endl;
+  std::cout << "  number of cells in x-direction: " << l_nx << std::endl;
   std::cout << "  number of cells in y-direction: " << l_ny << std::endl;
   std::cout << "  cell size:                      " << l_dxy << std::endl;
 
+  tsunami_lab::io::NetCdf_Write *l_netcdf_write;
+  l_netcdf_write = new tsunami_lab::io::NetCdf_Write(l_nx, l_ny, l_rescaleFactor_output, l_dxy);
+
   // construct setup
   tsunami_lab::setups::Setup *l_setup;
-  l_setup = new tsunami_lab::setups::TsunamiEvent(l_nx, l_netcdf);
+  l_setup = new tsunami_lab::setups::TsunamiEvent(l_nx, l_netcdf_read);
 
   // construct solver
   tsunami_lab::patches::WavePropagation *l_waveProp;
-  l_waveProp = new tsunami_lab::patches::cuda_WavePropagation2d(l_nx, l_ny);
+  l_waveProp = new tsunami_lab::patches::WavePropagation2d(l_nx, l_ny);
 
   // maximum observed height in the setup
   tsunami_lab::t_real l_hMax =
@@ -117,19 +122,19 @@ int main(int i_argc, char *i_argv[]) {
   // set up solver
   // TODO Parallelize for First touch
   for (tsunami_lab::t_idx l_cy = 0; l_cy < l_ny; l_cy++) {
-    tsunami_lab::t_real l_y = l_cy * l_dxy;
+    //tsunami_lab::t_real l_y = l_cy * l_dxy;
 
     for (tsunami_lab::t_idx l_cx = 0; l_cx < l_nx; l_cx++) {
-      tsunami_lab::t_real l_x = l_cx * l_dxy;
+      //tsunami_lab::t_real l_x = l_cx * l_dxy;
 
       // get initial values of the setup
-      tsunami_lab::t_real l_h = l_setup->getHeight(l_x, l_y);
+      tsunami_lab::t_real l_h = l_setup->getHeight(l_cx, l_cy);
       l_hMax = std::max(l_h, l_hMax);
 
-      tsunami_lab::t_real l_hu = l_setup->getMomentumX(l_x, l_y);
-      tsunami_lab::t_real l_hv = l_setup->getMomentumY(l_x, l_y);
+      tsunami_lab::t_real l_hu = l_setup->getMomentumX(l_cx, l_cy);
+      tsunami_lab::t_real l_hv = l_setup->getMomentumY(l_cx, l_cy);
 
-      tsunami_lab::t_real l_b = l_setup->getBathymetry(l_x, l_y);
+      tsunami_lab::t_real l_b = l_setup->getBathymetry(l_cx, l_cy);
 
       // set initial values in wave propagation solver
       l_waveProp->setHeight(l_cx, l_cy, l_h);
@@ -153,20 +158,21 @@ int main(int i_argc, char *i_argv[]) {
   std::cout << "seconds needed to read data from files:" << elapsed_io << '\n';
   // set up time and print control
   tsunami_lab::t_idx l_timeStep = 0;
-  tsunami_lab::t_real l_endTime = 100;
+  tsunami_lab::t_real l_endTime = 0.1;
   tsunami_lab::t_real l_simTime = 0;
 
+  std::cout << "l_hMax " << l_hMax << std::endl;
   // initialize the timescaling the momentum is ignored in the first step
   tsunami_lab::t_real l_speedMax = std::sqrt(9.81 * l_hMax);
 
   // derive constant time step; changes at simulation time are ignored
   tsunami_lab::t_real l_dt = 0.5 * l_dxy / l_speedMax;
-
+  std::cout << "l_dt " << l_dt << std::endl;
   // derive scaling for a time step
   tsunami_lab::t_real l_scaling = l_dt / l_dxy;
 
   // write bathymetry data
-  l_netcdf->writeBathymetry(l_waveProp->getStride(),
+  l_netcdf_write->writeBathymetry(l_waveProp->getStride(),
                             l_waveProp->getBathymetry());
 
   std::cout << "entering time loop" << std::endl;
@@ -177,7 +183,7 @@ int main(int i_argc, char *i_argv[]) {
     std::cout << "  simulation time / #time steps: " << l_simTime << " / "
                 << l_timeStep << std::endl;
  
-    l_netcdf->write(l_waveProp->getStride(), l_waveProp->getHeight(),
+    l_netcdf_write->write(l_waveProp->getStride(), l_waveProp->getHeight(),
                       l_waveProp->getMomentumX(), l_waveProp->getMomentumY(),
                       l_timeStep, l_simTime);
     
@@ -188,6 +194,7 @@ int main(int i_argc, char *i_argv[]) {
     elapsed_total += duration<double>(end - start).count();
     l_timeStep++;
     l_simTime += l_dt * l_computeSteps;
+    std::cout << l_simTime << std::endl;
   }
 
   const double elapsed_cell = elapsed_total / (l_timeStep * (l_nx * l_ny));
@@ -200,7 +207,7 @@ int main(int i_argc, char *i_argv[]) {
   std::cout << "freeing memory" << std::endl;
   delete l_setup;
   delete l_waveProp;
-  delete l_netcdf;
+  delete l_netcdf_write;
 
   std::cout << "finished, exiting" << std::endl;
   return EXIT_SUCCESS;

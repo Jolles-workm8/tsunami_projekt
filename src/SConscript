@@ -20,9 +20,10 @@ Import('env')
 # gather sources
 l_sources = [ 'solvers/fwave.cpp',
               'patches/WavePropagation2d.cpp',
-              'setups/ArtificialTsunami.cpp',
               'setups/TsunamiEvent.cpp',
               'io/NetCdf.cpp',
+              'io/NetCdf_Read.cpp',
+              'io/NetCdf_Write.cpp',
               'patches/cuda_WavePropagation2d.cu',
               ]
 

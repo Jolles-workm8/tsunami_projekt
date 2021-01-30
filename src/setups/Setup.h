@@ -43,8 +43,8 @@ class tsunami_lab::setups::Setup {
      * @param i_y y-coordinate of the queried point.
      * @return water height at the given point.
      **/
-    virtual t_real getHeight( t_real i_x,
-                              t_real i_y ) const = 0;
+    virtual t_real getHeight( t_idx i_x,
+                              t_idx i_y ) const = 0;
 
     /**
      * Gets the momentum in x-direction.
@@ -53,8 +53,8 @@ class tsunami_lab::setups::Setup {
      * @param i_y y-coordinate of the queried point.
      * @return momentum in x-direction.
      **/
-    virtual t_real getMomentumX( t_real i_x,
-                                 t_real i_y ) const = 0;
+    virtual t_real getMomentumX( t_idx i_x,
+                                 t_idx i_y ) const = 0;
 
     /**
      * Gets the momentum in y-direction.
@@ -63,8 +63,8 @@ class tsunami_lab::setups::Setup {
      * @param i_y y-coordinate of the queried point.
      * @return momentum in y-direction.
      **/
-    virtual t_real getMomentumY( t_real i_x,
-                                 t_real i_y ) const = 0;
+    virtual t_real getMomentumY( t_idx i_x,
+                                 t_idx i_y ) const = 0;
 
     /**
     * Gets the momentum in y-direction.
@@ -73,8 +73,8 @@ class tsunami_lab::setups::Setup {
     * @param i_y y-coordinate of the queried point.
     * @return bathymetry data.
     **/
-    virtual t_real getBathymetry( t_real i_x,
-                                  t_real i_y) const = 0;
+    virtual t_real getBathymetry( t_idx i_x,
+                                  t_idx i_y) const = 0;
 
 };
 

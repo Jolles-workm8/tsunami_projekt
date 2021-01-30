@@ -35,39 +35,40 @@
 
 // TODO: split netdcf class into init, read and write, so we avoid redundant
 // computation
-tsunami_lab::setups::TsunamiEvent::TsunamiEvent(t_idx i_nx, tsunami_lab::io::NetCdf *i_netcdf) {
+tsunami_lab::setups::TsunamiEvent::TsunamiEvent(t_idx i_nx, tsunami_lab::io::NetCdf_Read *i_netcdf) {
   l_nx = i_nx;
   l_netcdf = i_netcdf;
+  
 }
 
+
 tsunami_lab::t_real tsunami_lab::setups::TsunamiEvent::getHeight(
-    t_real i_x, t_real i_y) const {
-  t_real const b_in = l_netcdf->read_bathymetry(i_x, i_y);
-  if (b_in < 0) {
-    return std::max(-b_in, lambda);
+    t_idx i_x, t_idx i_y) const {
+    t_real b_value = l_netcdf->get_i_b(i_x, i_y);
+  if (b_value < 0) {
+    return std::max(-b_value, lambda);
   } else {
     return 0;
   }
 }
 
 tsunami_lab::t_real tsunami_lab::setups::TsunamiEvent::getMomentumX(
-    t_real, t_real) const {
+    t_idx, t_idx) const {
   return 0;
 }
 
 tsunami_lab::t_real tsunami_lab::setups::TsunamiEvent::getMomentumY(
-    t_real, t_real) const {
+    t_idx, t_idx) const {
   return 0;
 }
 
 tsunami_lab::t_real tsunami_lab::setups::TsunamiEvent::getBathymetry(
-    t_real i_x, t_real i_y) const {
-  t_real const b_in = l_netcdf->read_bathymetry(i_x, i_y);
-  t_real const d_in = l_netcdf->read_displacement(i_x, i_y);
-
-  if (b_in < 0) {
-    return std::min(b_in + d_in, -lambda);
+    t_idx i_x, t_idx i_y) const {
+  t_real b_value = l_netcdf->get_i_b(i_x, i_y);
+  t_real d_value = l_netcdf->get_i_d(i_x, i_y);
+  if (b_value < 0) {
+    return std::min(b_value + d_value, -lambda);
   } else {
-    return std::max(b_in + d_in, lambda);
+    return std::max(b_value + d_value, lambda);
   }
 }

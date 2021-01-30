@@ -31,7 +31,7 @@
 #ifndef TSUNAMI_EVENT_H_
 #define TSUNAMI_EVENT_H_
 
-#include "../io/NetCdf.h"
+#include "../io/NetCdf_Read.h"
 #include "Setup.h"
 
 namespace tsunami_lab {
@@ -46,15 +46,17 @@ class TsunamiEvent;
 
 class tsunami_lab::setups::TsunamiEvent : public Setup {
  private:
-  tsunami_lab::io::NetCdf *l_netcdf;
+  tsunami_lab::io::NetCdf_Read *l_netcdf;
   t_idx l_nx = 0;
   t_real const lambda = 20;
+
 
  public:
   /**
    *Constructor
    **/
-  TsunamiEvent(t_idx i_nx, tsunami_lab::io::NetCdf *i_netCdf);
+  TsunamiEvent(t_idx i_nx, tsunami_lab::io::NetCdf_Read *i_netCdf);
+
 
   /**
    * Gets the water height at a given point.
@@ -63,20 +65,20 @@ class tsunami_lab::setups::TsunamiEvent : public Setup {
    * @param i_y y-coordinate of the queried point.
    * @return height at the given point.
    **/
-  t_real getHeight(t_real i_x, t_real i_y) const;
+  t_real getHeight(t_idx i_x, t_idx i_y) const;
   /**
    * Gets the momentum in x-direction.
    *
    * @return momentum in x-direction.
    **/
-  t_real getMomentumX(t_real, t_real) const;
+  t_real getMomentumX(t_idx, t_idx) const;
 
   /**
    * Gets the momentum in y-direction.
    *
    * @return momentum in y-direction.
    **/
-  t_real getMomentumY(t_real, t_real) const;
+  t_real getMomentumY(t_idx, t_idx) const;
   /**
    * Gets the bathymetry data.
    *
@@ -85,6 +87,6 @@ class tsunami_lab::setups::TsunamiEvent : public Setup {
    *
    * @return the bathymetry data at the given point.
    **/
-  t_real getBathymetry(t_real i_x, t_real i_y) const;
+  t_real getBathymetry(t_idx i_x, t_idx i_y) const;
 };
 #endif
