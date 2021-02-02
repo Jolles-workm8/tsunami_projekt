@@ -17,13 +17,13 @@ This code is build using the autotool scons. If you havn't installed scons yet r
 Further you need Libnetcdf. Install it with the repository https://github.com/Unidata/netcdf-c
 or with a Linux machine via:
 
-* item text::
+
 
         sudo apt-get install libnetcdf-dev
 
 
 For building and installing the code run.
-* item text::
+
 
         scons
 
@@ -33,7 +33,7 @@ Running the code
 
 This code relies on netcdf data in the COARS format. Save your bathymetry data as bathymetry_data.nc and your displacement data as displacement_data.nc.
 
-*item test::
+
         mkdir data
         cd data
         cp bathymetry_data.nc ./$LOCATION_REPO$/data
