@@ -53,6 +53,7 @@ int main(int i_argc, char *i_argv[]) {
   tsunami_lab::t_idx l_rescaleFactor_input = 1;
   tsunami_lab::t_idx l_rescaleFactor_output = 1;
   tsunami_lab::t_idx l_computeSteps = 1;
+  tsunami_lab::t_real l_endTime = 100;
 
   // set cell size
   tsunami_lab::t_real l_dxy = 1;
@@ -63,12 +64,8 @@ int main(int i_argc, char *i_argv[]) {
   std::cout << "### http://scalable.uni-jena.de ###" << std::endl;
   std::cout << "###################################" << std::endl;
 
-  if (i_argc != 3) {
+  if (i_argc != 5) {
     std::cerr << "invalid number of arguments, usage:" << std::endl;
-    std::cerr << "  ./build/tsunami_lab N_CELLS_X " << std::endl;
-    std::cerr << "where N_CELLS_X is the number of cells in x-direction and "
-                 "y-direction is computed automatically."
-              << std::endl;
     return EXIT_FAILURE;
   } else {
     l_rescaleFactor_input = atoi(i_argv[1]);
@@ -81,6 +78,14 @@ int main(int i_argc, char *i_argv[]) {
     if (l_rescaleFactor_output < 1) {
       std::cerr << "invalid output rescaleFactor" << std::endl;
       return EXIT_FAILURE;
+    }
+    l_endTime = atoi(i_argv[3]);
+    if(l_endTime<1){
+      std::cerr<<"invalid seconds to compute"<< std::endl;
+    }
+    l_computeSteps = atoi(i_argv[4]);
+    if (l_computeSteps < 1 || l_computeSteps>l_endTime){
+      std::cerr<<"invalid computesteps"<< std::endl;
     }
   }
 
@@ -107,7 +112,7 @@ int main(int i_argc, char *i_argv[]) {
 
   // construct solver
   tsunami_lab::patches::WavePropagation *l_waveProp;
-  l_waveProp = new tsunami_lab::patches::WavePropagation2d(l_nx, l_ny);
+  l_waveProp = new tsunami_lab::patches::cuda_WavePropagation2d(l_nx, l_ny);
 
   // maximum observed height in the setup
   tsunami_lab::t_real l_hMax =
@@ -117,7 +122,6 @@ int main(int i_argc, char *i_argv[]) {
 
   using namespace std::chrono;
 
-  auto start = system_clock::now();
 
   // set up solver
   // TODO Parallelize for First touch
@@ -151,14 +155,9 @@ int main(int i_argc, char *i_argv[]) {
 
   l_waveProp->MemTransfer();
 
-  auto end = system_clock::now();
-
-  const double elapsed_io = duration<double>(end - start).count();
-
-  std::cout << "seconds needed to read data from files:" << elapsed_io << '\n';
   // set up time and print control
   tsunami_lab::t_idx l_timeStep = 0;
-  tsunami_lab::t_real l_endTime = 0.1;
+
   tsunami_lab::t_real l_simTime = 0;
 
   std::cout << "l_hMax " << l_hMax << std::endl;
@@ -177,7 +176,6 @@ int main(int i_argc, char *i_argv[]) {
 
   std::cout << "entering time loop" << std::endl;
   // iterate over time
-  double elapsed_total = 0;
   while (l_simTime < l_endTime) {
     
     std::cout << "  simulation time / #time steps: " << l_simTime << " / "
@@ -188,20 +186,11 @@ int main(int i_argc, char *i_argv[]) {
                       l_timeStep, l_simTime);
     
 
-    start = system_clock::now();
     l_waveProp->timeStep(l_scaling, l_computeSteps);
-    end = system_clock::now();
-    elapsed_total += duration<double>(end - start).count();
     l_timeStep++;
     l_simTime += l_dt * l_computeSteps;
-    std::cout << l_simTime << std::endl;
   }
 
-  const double elapsed_cell = elapsed_total / (l_timeStep * (l_nx * l_ny));
-  std::cout << "finished time loop. total time needed in seconds: "
-            << elapsed_total << '\n'
-            << "estimated time needed for one cell per timestep: "
-            << elapsed_cell << '\n';
 
   // free memory
   std::cout << "freeing memory" << std::endl;

@@ -1,8 +1,9 @@
 #ifndef __GPU_CUDA_WAVEPROPAGATION_2D
 #define __GPU_CUDA_WAVEPROPAGATION_2D
 
-#include "WavePropagation.h"
 #include <cuda.h>
+
+#include "WavePropagation.h"
 
 namespace tsunami_lab {
 namespace patches {
@@ -16,17 +17,20 @@ class tsunami_lab::patches::cuda_WavePropagation2d : public WavePropagation {
   t_idx m_yCells;
   t_idx size;
 
+  int m_blockspergrid_x;
+  int m_blockspergrid_y;
+
   t_real *m_h;
   t_real *m_hv;
   t_real *m_hu;
   t_real *m_b;
-  
+
   t_real *h_dev;
   t_real *h_dev_UpdateR;
   t_real *h_dev_UpdateL;
   t_real *hu_dev;
-  t_real *hu_dev_UpdateR;
-  t_real *hu_dev_UpdateL;
+  t_real *mom_dev_UpdateR;
+  t_real *mom_dev_UpdateL;
   t_real *hv_dev;
   t_real *b_dev;
 
@@ -119,13 +123,12 @@ class tsunami_lab::patches::cuda_WavePropagation2d : public WavePropagation {
     m_b[(i_ix + 1) + ((i_iy + 1) * (m_xCells + 2))] = i_b;
   }
 
-   void setReflection(t_idx, bool i_reflL, bool i_reflR) {
+  void setReflection(t_idx, bool i_reflL, bool i_reflR) {
     m_reflBoundL = i_reflL;
     m_reflBoundR = i_reflR;
   }
 
   void MemTransfer();
 };
-
 
 #endif

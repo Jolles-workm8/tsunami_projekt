@@ -48,7 +48,7 @@ class tsunami_lab::setups::TsunamiEvent : public Setup {
  private:
   tsunami_lab::io::NetCdf_Read *l_netcdf;
   t_idx l_nx = 0;
-  t_real const lambda = 20;
+  t_real const lambda = 50;
 
 
  public:
