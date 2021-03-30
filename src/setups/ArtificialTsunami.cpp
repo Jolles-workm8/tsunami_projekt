@@ -32,32 +32,35 @@
 
 #include <cmath>
 
-tsunami_lab::setups::ArtificialTsunami::ArtificialTsunami() {}
+tsunami_lab::setups::ArtificialTsunami::ArtificialTsunami() {
+  l_bath = 0;
+  l_mom_x = 0;
+  l_mom_y = 0;
+  l_height = 200;
+}
 
 tsunami_lab::t_real tsunami_lab::setups::ArtificialTsunami::getHeight(
-    t_real, t_real) const {
-  return 100;
+    t_idx, t_idx) const {
+  return l_height;
 }
 
 tsunami_lab::t_real tsunami_lab::setups::ArtificialTsunami::getMomentumX(
-    t_real, t_real) const {
-  return 0;
+    t_idx, t_idx) const {
+  return l_mom_x;
 }
 
 tsunami_lab::t_real tsunami_lab::setups::ArtificialTsunami::getMomentumY(
-    t_real, t_real) const {
-  return 0;
+    t_idx, t_idx) const {
+  return l_mom_y;
 }
 
 tsunami_lab::t_real tsunami_lab::setups::ArtificialTsunami::getBathymetry(
-    t_real i_x, t_real i_y) const {
-  i_x -= 5000;
-  i_y -= 5000;
+    t_idx i_x, t_idx i_y) const {
   float pi = 3.14159;
-  if ((-500 <= i_x) && (i_x <= 500) && (-500 <= i_y) && (i_y <= 500)) {
+  if ((4500 <= i_x) && (i_x <= 5500) && (4500 <= i_y) && (i_y <= 5500)) {
     return 5 * (std::sin(((float)0.002 * i_x + 1) * pi) *
-                (-1 * (0.002 * i_y) * (0.002 * i_y) + 1));
+                (-1 * (-0.002 * i_y) * (0.002 * i_y) + 1));
   } else {
-    return 0;
+    return l_bath;
   }
 }

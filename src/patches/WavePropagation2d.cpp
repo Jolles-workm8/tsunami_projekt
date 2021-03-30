@@ -51,11 +51,11 @@ tsunami_lab::patches::WavePropagation2d::WavePropagation2d(t_idx i_xCells,
   }
   m_b = new t_real[(m_xCells + 2) * (m_yCells + 2)];
 
-  // init to zero
-  #pragma omp parallel for schedule(static, 4)
-  for(unsigned long l_ceY = 0; l_ceY < (m_yCells + 2); l_ceY++) {
+// init to zero
+#pragma omp parallel for simd schedule(static, 4)
+  for (unsigned long l_ceY = 0; l_ceY < (m_yCells + 2); l_ceY++) {
     for (unsigned long l_ceX = 0; l_ceX < (m_xCells + 2); l_ceX++) {
-      unsigned long l_ce = l_ceX+l_ceY*(m_xCells+2);
+      unsigned long l_ce = l_ceX + l_ceY * (m_xCells + 2);
       m_b[l_ce] = 0;
       for (unsigned short l_st = 0; l_st < 2; l_st++) {
         m_h[l_st][l_ce] = 0;
@@ -76,96 +76,94 @@ tsunami_lab::patches::WavePropagation2d::~WavePropagation2d() {
   }
 }
 
-void tsunami_lab::patches::WavePropagation2d::timeStep(t_real i_scaling, t_idx computeSteps) {
-
+void tsunami_lab::patches::WavePropagation2d::timeStep(t_real i_scaling,
+                                                       t_idx computeSteps) {
   setGhostOutflow();
 
-  for(t_idx l_computations = 0; l_computations < computeSteps; l_computations++){
-  // pointers to old and new data
-  t_real *l_hOld = m_h[m_step];
-  t_real *l_huOld = m_hu[m_step];
-  t_real *l_hvOld = m_hv[m_step];
+  for (t_idx l_computations = 0; l_computations < computeSteps;
+       l_computations++) {
+    // pointers to old and new data
+    t_real *l_hOld = m_h[m_step];
+    t_real *l_huOld = m_hu[m_step];
+    t_real *l_hvOld = m_hv[m_step];
 
-  m_step = (m_step + 1) % 2;
-  t_real *l_hNew = m_h[m_step];
-  t_real *l_huNew = m_hu[m_step];
-  t_real *l_hvNew = m_hv[m_step];
+    m_step = (m_step + 1) % 2;
+    t_real *l_hNew = m_h[m_step];
+    t_real *l_huNew = m_hu[m_step];
+    t_real *l_hvNew = m_hv[m_step];
 
-  // init new cell quantities
-  #pragma omp parallel for schedule(static, 4)
-  for(unsigned long l_ceY = 0; l_ceY < (m_yCells + 2); l_ceY++) {
-    for (unsigned long l_ceX = 0; l_ceX < (m_xCells + 2); l_ceX++) {
-      unsigned long l_ce = l_ceX+l_ceY*(m_xCells+2);
+// init new cell quantities
+#pragma omp parallel for simd schedule(static, 4)
+    for (unsigned long l_ceY = 0; l_ceY < (m_yCells + 2); l_ceY++) {
+      for (unsigned long l_ceX = 0; l_ceX < (m_xCells + 2); l_ceX++) {
+        unsigned long l_ce = l_ceX + l_ceY * (m_xCells + 2);
 
-      l_hNew[l_ce] = l_hOld[l_ce];
-      l_huNew[l_ce] = l_huOld[l_ce];
-      l_hvNew[l_ce] = l_hvOld[l_ce];
+        l_hNew[l_ce] = l_hOld[l_ce];
+        l_huNew[l_ce] = l_huOld[l_ce];
+        l_hvNew[l_ce] = l_hvOld[l_ce];
+      }
     }
-  }
 
-  
-  // iterate over all collums in x direction with ghost cells
-  #pragma omp parallel for schedule(static, 4)
-  for (t_idx l_ceY = 0; l_ceY < (m_yCells + 2); l_ceY++) {
-    // iterate over edges in x direction and update with Riemann solutions
-    for (t_idx l_ceX = 0; l_ceX < (m_xCells + 1); l_ceX++) {
-      // determine left and right cell-id
-      t_idx l_ceL = calculateArrayPosition(l_ceX, l_ceY);
-      t_idx l_ceR = calculateArrayPosition(l_ceX + 1, l_ceY);
+// iterate over all collums in x direction with ghost cells
+#pragma omp parallel for simd schedule(static, 4)
+    for (t_idx l_ceY = 0; l_ceY < (m_yCells + 2); l_ceY++) {
+      // iterate over edges in x direction and update with Riemann solutions
+      for (t_idx l_ceX = 0; l_ceX < (m_xCells + 1); l_ceX++) {
+        // determine left and right cell-id
+        t_idx l_ceL = calculateArrayPosition(l_ceX, l_ceY);
+        t_idx l_ceR = calculateArrayPosition(l_ceX + 1, l_ceY);
 
-      // compute net-updates
-      t_real l_netUpdates[2][2];
+        // compute net-updates
+        t_real l_netUpdates[2][2];
 
-      solvers::fwave::netUpdates(l_hOld[l_ceL], l_hOld[l_ceR], l_huOld[l_ceL],
-                                 l_huOld[l_ceR], m_b[l_ceL], m_b[l_ceR],
-                                 l_netUpdates[0], l_netUpdates[1]);
+        solvers::fwave::netUpdates(l_hOld[l_ceL], l_hOld[l_ceR], l_huOld[l_ceL],
+                                   l_huOld[l_ceR], m_b[l_ceL], m_b[l_ceR],
+                                   l_netUpdates[0], l_netUpdates[1]);
 
-      // update the cells' quantities
-      l_hNew[l_ceL] -= i_scaling * l_netUpdates[0][0];
-      l_huNew[l_ceL] -= i_scaling * l_netUpdates[0][1];
+        // update the cells' quantities
+        l_hNew[l_ceL] -= i_scaling * l_netUpdates[0][0];
+        l_huNew[l_ceL] -= i_scaling * l_netUpdates[0][1];
 
-      l_hNew[l_ceR] -= i_scaling * l_netUpdates[1][0];
-      l_huNew[l_ceR] -= i_scaling * l_netUpdates[1][1];
+        l_hNew[l_ceR] -= i_scaling * l_netUpdates[1][0];
+        l_huNew[l_ceR] -= i_scaling * l_netUpdates[1][1];
+      }
     }
-  }
 
-  // init new cell quantities
-  #pragma omp parallel for schedule(static, 4)
-  for(unsigned long l_ceY = 0; l_ceY < (m_yCells + 2); l_ceY++) {
-    for (unsigned long l_ceX = 0; l_ceX < (m_xCells + 2); l_ceX++) {
-      unsigned long l_ce = l_ceX+l_ceY*(m_xCells+2);
-      l_hOld[l_ce] = l_hNew[l_ce];
-      l_huOld[l_ce] = l_huNew[l_ce];
-      l_hvOld[l_ce] = l_hvNew[l_ce];
+// init new cell quantities
+#pragma omp parallel for simd schedule(static, 4)
+    for (unsigned long l_ceY = 0; l_ceY < (m_yCells + 2); l_ceY++) {
+      for (unsigned long l_ceX = 0; l_ceX < (m_xCells + 2); l_ceX++) {
+        unsigned long l_ce = l_ceX + l_ceY * (m_xCells + 2);
+        l_hOld[l_ce] = l_hNew[l_ce];
+        l_huOld[l_ce] = l_huNew[l_ce];
+        l_hvOld[l_ce] = l_hvNew[l_ce];
+      }
     }
-  }
 
-  
-  // iterate over edges in y direction and update with Riemann solutions
-  #pragma omp parallel for schedule(static, 4)
-  for (t_idx l_ceY = 0; l_ceY < (m_yCells + 1); l_ceY++) {
-    // iterate over all rows in y direction without ghost cells
-    for (t_idx l_ceX = 1; l_ceX < (m_xCells + 1); l_ceX++) {
+// iterate over edges in y direction and update with Riemann solutions
+#pragma omp parallel for simd schedule(static, 4)
+    for (t_idx l_ceY = 0; l_ceY < (m_yCells + 1); l_ceY++) {
+      // iterate over all rows in y direction without ghost cells
+      for (t_idx l_ceX = 1; l_ceX < (m_xCells + 1); l_ceX++) {
+        // determine left and right cell-id
+        t_idx l_ceB = calculateArrayPosition(l_ceX, l_ceY);
+        t_idx l_ceT = calculateArrayPosition(l_ceX, l_ceY + 1);
 
-      // determine left and right cell-id
-      t_idx l_ceB = calculateArrayPosition(l_ceX, l_ceY);
-      t_idx l_ceT = calculateArrayPosition(l_ceX, l_ceY + 1);
+        // compute net-updates
+        t_real l_netUpdates[2][2];
 
-      // compute net-updates
-      t_real l_netUpdates[2][2];
+        solvers::fwave::netUpdates(l_hOld[l_ceB], l_hOld[l_ceT], l_hvOld[l_ceB],
+                                   l_hvOld[l_ceT], m_b[l_ceB], m_b[l_ceT],
+                                   l_netUpdates[0], l_netUpdates[1]);
 
-      solvers::fwave::netUpdates(l_hOld[l_ceB], l_hOld[l_ceT], l_hvOld[l_ceB],
-                                 l_hvOld[l_ceT], m_b[l_ceB], m_b[l_ceT],
-                                 l_netUpdates[0], l_netUpdates[1]);
+        // update the cells' quantities
+        l_hNew[l_ceB] -= i_scaling * l_netUpdates[0][0];
+        l_hvNew[l_ceB] -= i_scaling * l_netUpdates[0][1];
 
-      // update the cells' quantities
-      l_hNew[l_ceB] -= i_scaling * l_netUpdates[0][0];
-      l_hvNew[l_ceB] -= i_scaling * l_netUpdates[0][1];
-
-      l_hNew[l_ceT] -= i_scaling * l_netUpdates[1][0];
-      l_hvNew[l_ceT] -= i_scaling * l_netUpdates[1][1];
+        l_hNew[l_ceT] -= i_scaling * l_netUpdates[1][0];
+        l_hvNew[l_ceT] -= i_scaling * l_netUpdates[1][1];
+      }
     }
-  }
   }
 }
 

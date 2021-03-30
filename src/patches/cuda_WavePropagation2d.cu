@@ -82,7 +82,6 @@ void tsunami_lab::patches::cuda_WavePropagation2d::MemTransfer() {
 }
 void tsunami_lab::patches::cuda_WavePropagation2d::timeStep(
     t_real i_scaling, t_idx i_computeSteps) {
-      
   t_idx l_nx = m_xCells + 2;
   t_idx l_ny = m_yCells + 2;
 
@@ -124,16 +123,10 @@ __global__ void updateValues(float *o_h, float *i_h_UpdateR, float *i_h_UpdateL,
   int l_j = blockIdx.y * blockDim.y + threadIdx.y;
   int idx = l_i + l_j * i_nx;
 
-
   if (l_i < i_nx && l_j < i_ny) {
     o_h[idx] += i_h_UpdateR[idx] + i_h_UpdateL[idx];
-    i_h_UpdateR[idx] = 0;
-    i_h_UpdateL[idx] = 0;
     o_hu[idx] += i_hu_UpdateR[idx] + i_hu_UpdateL[idx];
-    i_hu_UpdateR[idx] = 0;
-    i_hu_UpdateL[idx] = 0;
   }
-  
 }
 
 __global__ void initUpdatesZero(float *i_h_UpdateR, float *i_h_UpdateL,
@@ -182,30 +175,29 @@ __global__ void setGhostOutflow(float *i_height, float *i_hu, float *i_hv,
       i_b[idx] = i_b[idx - 1];
     }
 
-    if(l_i == 0 && l_j == 0){
+    if (l_i == 0 && l_j == 0) {
       i_height[idx] = i_height[idx + i_nx + 1];
       i_hu[idx] = i_hu[idx + i_nx + 1];
       i_hv[idx] = i_hv[idx + i_nx + 1];
       i_b[idx] = i_b[idx + i_nx + 1];
     }
-    if(l_i ==0 && l_j == i_ny -1){
+    if (l_i == 0 && l_j == i_ny - 1) {
       i_height[idx] = i_height[idx - i_nx + 1];
       i_hu[idx] = i_hu[idx - i_nx + 1];
       i_hv[idx] = i_hv[idx - i_nx + 1];
       i_b[idx] = i_b[idx - i_nx + 1];
     }
-    if(l_i == i_nx-1 && l_j==0){
+    if (l_i == i_nx - 1 && l_j == 0) {
       i_height[idx] = i_height[idx + i_nx - 1];
       i_hu[idx] = i_hu[idx + i_nx - 1];
       i_hv[idx] = i_hv[idx + i_nx - 1];
       i_b[idx] = i_b[idx + i_nx - 1];
     }
-    if(l_i == i_nx-1 && l_j == i_ny-1){
+    if (l_i == i_nx - 1 && l_j == i_ny - 1) {
       i_height[idx] = i_height[idx - i_nx - 1];
       i_hu[idx] = i_hu[idx - i_nx - 1];
       i_hv[idx] = i_hv[idx - i_nx - 1];
       i_b[idx] = i_b[idx - i_nx - 1];
-
     }
   }
 }
@@ -221,7 +213,7 @@ __global__ void netUpdates(float *i_height, float *o_height_UpdateR,
 
   if (l_i < i_xEdges && l_j < i_yEdges) {
     // compute u for left and right
-    
+
     float l_hL = i_height[idx];
     float l_hR = i_height[idx + i_stride];
 

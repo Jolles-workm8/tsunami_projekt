@@ -21,6 +21,7 @@ Import('env')
 l_sources = [ 'solvers/fwave.cpp',
               'patches/WavePropagation2d.cpp',
               'setups/TsunamiEvent.cpp',
+              'setups/ArtificialTsunami.cpp',
               'io/NetCdf.cpp',
               'io/NetCdf_Read.cpp',
               'io/NetCdf_Write.cpp',

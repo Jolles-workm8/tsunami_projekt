@@ -43,7 +43,7 @@
 #include "io/NetCdf_Write.h"
 #include "patches/WavePropagation2d.h"
 #include "patches/cuda_WavePropagation2d.h"
-//#include "setups/ArtificialTsunami.h"
+#include "setups/ArtificialTsunami.h"
 #include "setups/TsunamiEvent.h"
 
 int main(int i_argc, char *i_argv[]) {
@@ -80,19 +80,19 @@ int main(int i_argc, char *i_argv[]) {
       return EXIT_FAILURE;
     }
     l_endTime = atoi(i_argv[3]);
-    if(l_endTime<1){
-      std::cerr<<"invalid seconds to compute"<< std::endl;
+    if (l_endTime < 1) {
+      std::cerr << "invalid seconds to compute" << std::endl;
     }
     l_computeSteps = atoi(i_argv[4]);
-    if (l_computeSteps < 1 || l_computeSteps>l_endTime){
-      std::cerr<<"invalid computesteps"<< std::endl;
+    if (l_computeSteps < 1 || l_computeSteps > l_endTime) {
+      std::cerr << "invalid computesteps" << std::endl;
     }
   }
 
   // construct NetCdf-reader
   tsunami_lab::io::NetCdf_Read *l_netcdf_read;
-  l_netcdf_read = new tsunami_lab::io::NetCdf_Read(l_rescaleFactor_input, "bathymetry_data.nc",
-                                         "displacement_data.nc");
+  l_netcdf_read = new tsunami_lab::io::NetCdf_Read(
+      l_rescaleFactor_input, "bathymetry_data.nc", "displacement_data.nc");
 
   l_nx = l_netcdf_read->get_nx();
   l_ny = l_netcdf_read->get_ny();
@@ -104,15 +104,17 @@ int main(int i_argc, char *i_argv[]) {
   std::cout << "  cell size:                      " << l_dxy << std::endl;
 
   tsunami_lab::io::NetCdf_Write *l_netcdf_write;
-  l_netcdf_write = new tsunami_lab::io::NetCdf_Write(l_nx, l_ny, l_rescaleFactor_output, l_dxy);
+  l_netcdf_write = new tsunami_lab::io::NetCdf_Write(
+      l_nx, l_ny, l_rescaleFactor_output, l_dxy);
 
   // construct setup
   tsunami_lab::setups::Setup *l_setup;
-  l_setup = new tsunami_lab::setups::TsunamiEvent(l_nx, l_netcdf_read);
+  // l_setup = new tsunami_lab::setups::TsunamiEvent(l_nx, l_netcdf_read);
+  l_setup = new tsunami_lab::setups::ArtificialTsunami();
 
   // construct solver
   tsunami_lab::patches::WavePropagation *l_waveProp;
-  l_waveProp = new tsunami_lab::patches::cuda_WavePropagation2d(l_nx, l_ny);
+  l_waveProp = new tsunami_lab::patches::WavePropagation2d(l_nx, l_ny);
 
   // maximum observed height in the setup
   tsunami_lab::t_real l_hMax =
@@ -122,14 +124,13 @@ int main(int i_argc, char *i_argv[]) {
 
   using namespace std::chrono;
 
-
   // set up solver
   // TODO Parallelize for First touch
   for (tsunami_lab::t_idx l_cy = 0; l_cy < l_ny; l_cy++) {
-    //tsunami_lab::t_real l_y = l_cy * l_dxy;
+    // tsunami_lab::t_real l_y = l_cy * l_dxy;
 
     for (tsunami_lab::t_idx l_cx = 0; l_cx < l_nx; l_cx++) {
-      //tsunami_lab::t_real l_x = l_cx * l_dxy;
+      // tsunami_lab::t_real l_x = l_cx * l_dxy;
 
       // get initial values of the setup
       tsunami_lab::t_real l_h = l_setup->getHeight(l_cx, l_cy);
@@ -172,25 +173,22 @@ int main(int i_argc, char *i_argv[]) {
 
   // write bathymetry data
   l_netcdf_write->writeBathymetry(l_waveProp->getStride(),
-                            l_waveProp->getBathymetry());
+                                  l_waveProp->getBathymetry());
 
   std::cout << "entering time loop" << std::endl;
   // iterate over time
   while (l_simTime < l_endTime) {
-    
     std::cout << "  simulation time / #time steps: " << l_simTime << " / "
-                << l_timeStep << std::endl;
- 
+              << l_timeStep << std::endl;
+
     l_netcdf_write->write(l_waveProp->getStride(), l_waveProp->getHeight(),
-                      l_waveProp->getMomentumX(), l_waveProp->getMomentumY(),
-                      l_timeStep, l_simTime);
-    
+                          l_waveProp->getMomentumX(),
+                          l_waveProp->getMomentumY(), l_timeStep, l_simTime);
 
     l_waveProp->timeStep(l_scaling, l_computeSteps);
     l_timeStep++;
     l_simTime += l_dt * l_computeSteps;
   }
-
 
   // free memory
   std::cout << "freeing memory" << std::endl;

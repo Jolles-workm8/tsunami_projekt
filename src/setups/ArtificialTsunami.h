@@ -45,12 +45,14 @@ class ArtificialTsunami;
 
 class tsunami_lab::setups::ArtificialTsunami : public Setup {
  private:
+  t_real l_bath;
+  t_real l_height;
+  t_real l_mom_x;
+  t_real l_mom_y;
+
  public:
   /**
    *Constructor
-   * @param i_impuls impuls of the waves namely hu
-   * @param i_location position where the waves start
-   * @param i_height water height
    **/
   ArtificialTsunami();
 
@@ -60,27 +62,27 @@ class tsunami_lab::setups::ArtificialTsunami : public Setup {
    * @param i_x x-coordinate of the queried point.
    * @return height at the given point.
    **/
-  t_real getHeight(t_real, t_real) const;
+  t_real getHeight(t_idx, t_idx) const;
 
   /**
    * Gets the momentum in x-direction.
    *
    * @return momentum in x-direction.
    **/
-  t_real getMomentumX(t_real, t_real) const;
+  t_real getMomentumX(t_idx, t_idx) const;
 
   /**
    * Gets the momentum in y-direction.
    *
    * @return momentum in y-direction.
    **/
-  t_real getMomentumY(t_real, t_real) const;
+  t_real getMomentumY(t_idx, t_idx) const;
 
   /**
    * Gets the bathymetry data.
    *
    * @return the bathymetry data.
    **/
-  t_real getBathymetry(t_real i_x, t_real i_y) const;
+  t_real getBathymetry(t_idx i_x, t_idx i_y) const;
 };
 #endif
