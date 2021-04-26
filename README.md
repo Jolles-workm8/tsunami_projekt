@@ -1,4 +1,4 @@
-#Tsunami propagation
+# Tsunami propagation
 
 This is code of the Tsunami lab taught at Friedrich-Schiller-Universität Jena.
 Further information is available from: http://scalable.uni-jena.de.
@@ -34,7 +34,7 @@ To compile run
 
     scons
 
-##Running the code
+## Running the code
 
 
 This code relies on netcdf data in the COARS format. Save your bathymetry data as bathymetry_data.nc and your displacement data as displacement_data.nc.
