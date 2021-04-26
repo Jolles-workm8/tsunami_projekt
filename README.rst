@@ -1,34 +1,45 @@
-###########
-Tsunami Lab
-###########
+#Tsunami propagation
 
 This is code of the Tsunami lab taught at Friedrich-Schiller-Universität Jena.
 Further information is available from: http://scalable.uni-jena.de.
 
+This is a toolkit to compute Tsunami Events based on NetCDF-files or HDF5-files.
+It takes into account the Bathymetry of the underlying Seadbed and solves the numerical problem with the shallow water equation.
 
-Installation
-============
 
-This code is build using the autotool scons. If you havn't installed scons yet run
+
+![alt text](https://github.com/Jolles-workm8/tsunami_projekt/markdown/images/tsunami2.gif "Tohoku Earthquake 2013")
+
+## Installation
+
+This code can only be run on Linux machines.
+
+To compile this Code ypu need to install several frameworks.
+
+##### Scons
+Install Scons manually from https://github.com/SCons/scons or via
 * item text::
 
         pip install scons
 
-Further you need Libnetcdf. Install it with the repository https://github.com/Unidata/netcdf-c
-or with a Linux machine via:
+##### LibNetCDF
+Install LibNetCDF manually from https://github.com/Unidata/netcdf-c or via
 * item text::
 
 
         sudo apt-get install libnetcdf-dev
 
 
-For building and installing the code run.
+##### CUDA
+To use the CUDA-Kernel you need to install it first. Follow the instructions on https://developer.nvidia.com/cuda-downloads
+
+### Compile
+To compile run
 * item text::
 
         scons
 
-Running the code
-================
+##Running the code
 
 
 This code relies on netcdf data in the COARS format. Save your bathymetry data as bathymetry_data.nc and your displacement data as displacement_data.nc.
