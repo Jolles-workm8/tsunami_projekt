@@ -8,7 +8,7 @@ It takes into account the Bathymetry of the underlying Seadbed and solves the nu
 
 
 
-![alt text](https://github.com/Jolles-workm8/tsunami_projekt/markdown/images/tsunami2.gif "Tohoku Earthquake 2013")
+![](https://github.com/Jolles-workm8/tsunami_projekt/markdown/images/tsunami2.gif)
 
 ## Installation
 
