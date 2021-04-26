@@ -8,7 +8,7 @@ It takes into account the Bathymetry of the underlying Seadbed and solves the nu
 
 
 
-![](https://github.com/Jolles-workm8/tsunami_projekt/markdown/images/tsunami2.gif)
+![](https://github.com/Jolles-workm8/tsunami_projekt/blob/main/markdown/images/tsunami2.gif)
 
 ## Installation
 
